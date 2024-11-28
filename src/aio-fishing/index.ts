@@ -1,32 +1,6 @@
-// Declare globals provided by Sox's Botmaker
-declare const api: {
-	printGameMessage: (message: string) => void;
-	interactNpc: (index: number, action: string) => void;
-};
+import {} from '@deafwave/osrs-botmaker-types';
 
-declare const client: {
-	getLocalPlayer: () => PlayerType | null;
-	getNpcs: () => NpcType[];
-};
-
-// Define types for RuneLite objects
-interface PlayerType {
-	getAnimation: () => number;
-	getWorldLocation: () => LocationType;
-}
-
-interface NpcType {
-	getId: () => number;
-	getWorldLocation: () => LocationType;
-	getIndex: () => number;
-}
-
-interface LocationType {
-	getX: () => number;
-	getY: () => number;
-}
-
-// Define fishing method enum
+// Enum for fishing options
 enum FishingOption {
 	SMALL_NET = 'Small Net',
 	BIG_NET = 'Big Net',
@@ -38,76 +12,129 @@ enum FishingOption {
 	KARAMBWAN_VESSEL = 'Karambwan Vessel',
 }
 
-// Configuration class with type safety
+// Configuration class with GUI support
 class Config {
-	fishingMethod: FishingOption;
-	maxDistance: number;
-	enableDebug: boolean;
-
-	constructor() {
-		this.fishingMethod = FishingOption.SMALL_NET;
-		this.maxDistance = 20;
-		this.enableDebug = false;
-	}
+	fishingMethod: FishingOption = FishingOption.CAGE;
+	maxDistance: number = 20;
+	enableDebug: boolean = true;
+	timeout: number = 3;
+	isRunning: boolean = false; // Controls if the bot is running
+	currentAction: string = 'Waiting to start...'; // Current status for overlay
+	startTime: number = 0; // For tracking session duration
 }
 
-// Create config instance
 const config = new Config();
 
-// Animation IDs for fishing
-const FISHING_ANIMATIONS: { [key: string]: number } = {
-	'Small Net': 621,
-	'Big Net': 620,
-	'Fishing Rod': 623,
-	'Fly Fishing Rod': 622,
-	Cage: 619,
-	Harpoon: 618,
-	Barehand: 624,
-	'Karambwan Vessel': 1193,
+// Animation IDs for different fishing methods
+const FISHING_ANIMATIONS = {
+	[FishingOption.SMALL_NET]: 621,
+	[FishingOption.BIG_NET]: 620,
+	[FishingOption.FISHING_ROD]: 623,
+	[FishingOption.FLY_FISHING_ROD]: 622,
+	[FishingOption.CAGE]: 619,
+	[FishingOption.HARPOON]: 618,
+	[FishingOption.BAREHAND]: 624,
+	[FishingOption.KARAMBWAN_VESSEL]: 1193,
 };
 
 // Fishing spot configurations
-const FISHING_CONFIGS: {
-	[key: string]: { spotIds: number[]; action: string };
-} = {
-	'Small Net': {
+const FISHING_CONFIGS = {
+	[FishingOption.CAGE]: {
+		spotIds: [
+			1510, 1519, 1522, 2146, 3657, 3914, 5821, 7199, 7460, 7465, 7470,
+			7946, 9173, 9174,
+		],
+		action: 'Cage',
+	},
+	[FishingOption.SMALL_NET]: {
 		spotIds: [1517, 1518],
 		action: 'Net',
 	},
-	'Big Net': {
-		spotIds: [1520, 1521],
-		action: 'Big Net',
-	},
-	'Fishing Rod': {
-		spotIds: [1517, 1518],
-		action: 'Bait',
-	},
-	'Fly Fishing Rod': {
-		spotIds: [1517, 1518],
-		action: 'Lure',
-	},
-	Cage: {
-		spotIds: [1535, 1536],
-		action: 'Cage',
-	},
-	Harpoon: {
-		spotIds: [1542, 1544],
-		action: 'Harpoon',
-	},
-	Barehand: {
-		spotIds: [1542, 1544],
-		action: 'Catch',
-	},
-	'Karambwan Vessel': {
-		spotIds: [4712, 4713],
-		action: 'Fish',
-	},
+	// Add other configurations as needed
 };
 
-/**
- * Checks if player is currently fishing
- */
-function isPlayerFishing() {
+// Create configuration GUI
+function createConfigGui(): void {
+	// Main panel for configuration
+	const panel = bot.createConfigPanel('AIO Fisher Configuration');
+
+	// Add fishing method dropdown
+	panel.addDropdown(
+		'fishing-method',
+		'Fishing Method',
+		config.fishingMethod,
+		Object.values(FishingOption),
+		(value) => {
+			config.fishingMethod = value as FishingOption;
+		},
+	);
+
+	// Add max distance slider
+	panel.addSlider(
+		'max-distance',
+		'Max Distance',
+		config.maxDistance,
+		1,
+		30,
+		1,
+		(value) => {
+			config.maxDistance = value;
+		},
+	);
+
+	// Add debug mode checkbox
+	panel.addCheckbox(
+		'debug-mode',
+		'Enable Debug',
+		config.enableDebug,
+		(value) => {
+			config.enableDebug = value;
+		},
+	);
+
+	// Add start/stop button
+	panel.addButton(
+		'toggle-bot',
+		config.isRunning ? 'Stop Bot' : 'Start Bot',
+		() => {
+			config.isRunning = !config.isRunning;
+			if (config.isRunning) {
+				config.startTime = Date.now();
+				config.currentAction = 'Starting fishing...';
+			} else {
+				config.currentAction = 'Bot stopped';
+			}
+			// Update button text
+			panel.updateButton(
+				'toggle-bot',
+				config.isRunning ? 'Stop Bot' : 'Start Bot',
+			);
+		},
+	);
+}
+
+// Create overlay for displaying current status
+function createOverlay(): void {
+	const overlay = bot.createOverlay('AIO Fisher Status');
+
+	// Update overlay every game tick
+	overlay.setContentLoader(() => {
+		const runtime = Math.floor((Date.now() - config.startTime) / 1000);
+		const hours = Math.floor(runtime / 3600);
+		const minutes = Math.floor((runtime % 3600) / 60);
+		const seconds = runtime % 60;
+
+		return [
+			`Status: ${config.currentAction}`,
+			`Method: ${config.fishingMethod}`,
+			`Runtime: ${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+			`Debug: ${config.enableDebug ? 'Enabled' : 'Disabled'}`,
+		];
+	});
+}
+
+// Check if the local player is currently fishing
+function isPlayerFishing(): boolean {
 	const player = client.getLocalPlayer();
 	if (!player) return false;
 
@@ -115,59 +142,67 @@ function isPlayerFishing() {
 	return animation === FISHING_ANIMATIONS[config.fishingMethod];
 }
 
-/**
- * Find nearest valid fishing spot
- */
-function findNearestFishingSpot() {
-	const player = client.getLocalPlayer();
-	if (!player) return -1;
+// Checks if the local player is idle
+function isPlayerIdle(): boolean {
+	return !isPlayerFishing() && bot.localPlayerIdle();
+}
 
-	const playerLoc = player.getWorldLocation();
-	const playerX = playerLoc.getX();
-	const playerY = playerLoc.getY();
-
-	let nearestSpot = -1;
-	let nearestDistance = config.maxDistance;
-
-	const validSpotIds = FISHING_CONFIGS[config.fishingMethod].spotIds;
-	const npcs = client.getNpcs();
-
-	for (const npc of npcs) {
-		// Important: Convert getId() result to number explicitly
-		if (!npc || !validSpotIds.includes(Number(npc.getId()))) continue;
-
-		const npcLoc = npc.getWorldLocation();
-		const distance =
-			Math.abs(playerX - npcLoc.getX()) +
-			Math.abs(playerY - npcLoc.getY());
-
-		if (distance < nearestDistance) {
-			nearestDistance = distance;
-			// Important: Convert getIndex() result to number explicitly
-			nearestSpot = Number(npc.getIndex());
-		}
+// Click on an NPC with the specified action
+function clickNpc(npcIds: number[], action: string): boolean {
+	// Get NPCs with matching IDs
+	const npcs = bot.npcs.getWithIds(npcIds);
+	if (!npcs || npcs.length < 1) {
+		config.currentAction = 'No fishing spots found';
+		return false;
 	}
 
-	return nearestSpot;
+	// Get the closest NPC from the list
+	const closestNpc = bot.npcs.getClosest(npcs);
+	if (!closestNpc) {
+		config.currentAction = 'Cannot reach fishing spot';
+		return false;
+	}
+
+	try {
+		// Interact with the NPC using the specified action
+		bot.npcs.interact(closestNpc, action);
+		config.currentAction = `Fishing at ${closestNpc.getName()}`;
+		return true;
+	} catch (error) {
+		config.currentAction = `Error: ${error.message}`;
+		return false;
+	}
 }
 
-export function onStart() {
-	api.printGameMessage('Started AIO Fishing script');
-}
+// Main fishing function
+function fish(): void {
+	if (!config.isRunning) return;
 
-export function onGameTick() {
+	const fishingConfig = FISHING_CONFIGS[config.fishingMethod];
+	if (!fishingConfig) {
+		config.currentAction = 'Invalid fishing method';
+		return;
+	}
+
 	if (isPlayerFishing()) {
+		config.currentAction = 'Currently fishing...';
 		return;
 	}
 
-	const spotIndex = findNearestFishingSpot();
-	if (spotIndex === -1) {
-		return;
+	clickNpc(fishingConfig.spotIds, fishingConfig.action);
+}
+
+// Exported functions for the bot
+export function onStart(): void {
+	api.printGameMessage('Started AIO Fishing script');
+	createConfigGui();
+	createOverlay();
+}
+
+export function onGameTick(): void {
+	if (!config.isRunning) return;
+
+	if (isPlayerIdle()) {
+		fish();
 	}
-
-	// Important: Use string values directly for the action
-	const action = FISHING_CONFIGS[config.fishingMethod].action;
-
-	// Convert arguments to primitive types explicitly
-	api.interactNpc(Number(spotIndex), String(action));
 }
