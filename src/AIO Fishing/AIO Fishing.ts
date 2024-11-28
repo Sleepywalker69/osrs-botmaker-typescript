@@ -1,26 +1,34 @@
-// Define available fishing methods
-const FishingOption = {
-	SMALL_NET: 'Small Net',
-	BIG_NET: 'Big Net',
-	FISHING_ROD: 'Fishing Rod',
-	FLY_FISHING_ROD: 'Fly Fishing Rod',
-	CAGE: 'Cage',
-	HARPOON: 'Harpoon',
-	BAREHAND: 'Barehand',
-	KARAMBWAN_VESSEL: 'Karambwan Vessel',
-};
-
-// Configuration class for Botmaker UI
-function Config() {
-	this.fishingMethod = FishingOption.SMALL_NET;
-	this.maxDistance = 20;
-	this.enableDebug = false;
+// Define fishing method enum
+enum FishingOption {
+	SMALL_NET = 'Small Net',
+	BIG_NET = 'Big Net',
+	FISHING_ROD = 'Fishing Rod',
+	FLY_FISHING_ROD = 'Fly Fishing Rod',
+	CAGE = 'Cage',
+	HARPOON = 'Harpoon',
+	BAREHAND = 'Barehand',
+	KARAMBWAN_VESSEL = 'Karambwan Vessel',
 }
 
+// Define proper types for our configuration
+class Config {
+	// Explicitly declare types for our properties
+	fishingMethod: FishingOption;
+	maxDistance: number;
+	enableDebug: boolean;
+
+	constructor() {
+		this.fishingMethod = FishingOption.SMALL_NET;
+		this.maxDistance = 20;
+		this.enableDebug = false;
+	}
+}
+
+// Create a type-safe config instance
 const config = new Config();
 
-// Animation IDs for different fishing methods
-const FISHING_ANIMATIONS = {
+// Type-safe animation mapping
+const FISHING_ANIMATIONS: Record<FishingOption, number> = {
 	[FishingOption.SMALL_NET]: 621,
 	[FishingOption.BIG_NET]: 620,
 	[FishingOption.FISHING_ROD]: 623,
@@ -31,8 +39,13 @@ const FISHING_ANIMATIONS = {
 	[FishingOption.KARAMBWAN_VESSEL]: 1193,
 };
 
-// Using correct NPC IDs from the API
-const FISHING_CONFIGS = {
+// Type-safe fishing configurations
+interface FishingSpotConfig {
+	spotIds: number[];
+	action: string;
+}
+
+const FISHING_CONFIGS: Record<FishingOption, FishingSpotConfig> = {
 	[FishingOption.SMALL_NET]: {
 		spotIds: [
 			net.runelite.api.NpcID.FISHING_SPOT_1517,
@@ -91,7 +104,7 @@ const FISHING_CONFIGS = {
 	},
 };
 
-function isPlayerFishing() {
+function isPlayerFishing(): boolean {
 	const player = client.getLocalPlayer();
 	if (!player) return false;
 
@@ -99,12 +112,12 @@ function isPlayerFishing() {
 	return animation === FISHING_ANIMATIONS[config.fishingMethod];
 }
 
-function findNearestFishingSpot() {
+function findNearestFishingSpot(): net.runelite.api.NPC | null {
 	const player = client.getLocalPlayer();
 	if (!player) return null;
 
 	const playerLocation = player.getWorldLocation();
-	let nearestSpot = null;
+	let nearestSpot: net.runelite.api.NPC | null = null;
 	let nearestDistance = config.maxDistance;
 
 	const npcs = client.getNpcs();
@@ -131,13 +144,13 @@ function findNearestFishingSpot() {
 	return nearestSpot;
 }
 
-function onStart() {
+export function onStart(): void {
 	api.printGameMessage(
 		`Started fishing script - Using ${config.fishingMethod}`,
 	);
 }
 
-function onGameTick() {
+export function onGameTick(): void {
 	if (isPlayerFishing()) return;
 
 	const nearestSpot = findNearestFishingSpot();
@@ -148,13 +161,7 @@ function onGameTick() {
 				`Attempting to ${fishingAction} at spot ID: ${nearestSpot.getId()}`,
 			);
 		}
-		// Use the correct API method for interaction
-		api.interactWithNpc(nearestSpot, fishingAction);
+		// Use the correct API method name
+		api.interactNpc(nearestSpot.getName(), fishingAction);
 	}
 }
-
-// Export the required functions
-Object.assign(module.exports, {
-	onStart,
-	onGameTick,
-});
