@@ -1,3 +1,31 @@
+// Declare globals provided by Sox's Botmaker
+declare const api: {
+	printGameMessage: (message: string) => void;
+	interactNpc: (index: number, action: string) => void;
+};
+
+declare const client: {
+	getLocalPlayer: () => PlayerType | null;
+	getNpcs: () => NpcType[];
+};
+
+// Define types for RuneLite objects
+interface PlayerType {
+	getAnimation: () => number;
+	getWorldLocation: () => LocationType;
+}
+
+interface NpcType {
+	getId: () => number;
+	getWorldLocation: () => LocationType;
+	getIndex: () => number;
+}
+
+interface LocationType {
+	getX: () => number;
+	getY: () => number;
+}
+
 // Define fishing method enum
 enum FishingOption {
 	SMALL_NET = 'Small Net',
@@ -111,8 +139,9 @@ function findNearestFishingSpot(): number {
 	const player = client.getLocalPlayer();
 	if (!player) return -1;
 
-	const playerX = player.getWorldLocation().getX();
-	const playerY = player.getWorldLocation().getY();
+	const playerLoc = player.getWorldLocation();
+	const playerX = playerLoc.getX();
+	const playerY = playerLoc.getY();
 
 	let nearestSpot = -1;
 	let nearestDistance = config.maxDistance;
@@ -120,7 +149,7 @@ function findNearestFishingSpot(): number {
 	const validSpotIds = FISHING_CONFIGS[config.fishingMethod].spotIds;
 	const npcs = client.getNpcs();
 
-	for (const [i, npc] of npcs.entries()) {
+	for (const npc of npcs) {
 		if (!npc || !validSpotIds.includes(npc.getId())) continue;
 
 		const npcLoc = npc.getWorldLocation();
@@ -133,7 +162,7 @@ function findNearestFishingSpot(): number {
 
 		if (distance < nearestDistance) {
 			nearestDistance = distance;
-			nearestSpot = i;
+			nearestSpot = npc.getIndex();
 		}
 	}
 
@@ -147,13 +176,12 @@ function findNearestFishingSpot(): number {
 }
 
 /**
- * Adds natural variation to actions to avoid patterns
+ * Adds natural variation between actions
  */
-function addActionDelay(): void {
-	const baseDelay = 600;
+function addDelay(baseDelay: number): void {
 	const variation = Math.floor(Math.random() * config.afkVariation);
-	// Use standard setTimeout instead of api.sleep
-	setTimeout(() => {}, baseDelay + variation);
+	// We'll use the base delay plus random variation
+	return baseDelay + variation;
 }
 
 export function onStart(): void {
@@ -179,9 +207,6 @@ export function onGameTick(): void {
 		);
 	}
 
-	// Add natural delay variation
-	addActionDelay();
-
-	// Interact with the fishing spot using the correct API method
+	// Perform the fishing action
 	api.interactNpc(spotIndex, fishingAction);
 }
