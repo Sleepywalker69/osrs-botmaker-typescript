@@ -178,10 +178,25 @@ function findNearestFishingSpot(): number {
 /**
  * Adds natural variation between actions
  */
-function addDelay(baseDelay: number): void {
+/**
+ * Calculates the delay to add between actions.
+ * Returns the total delay in milliseconds.
+ */
+function calculateDelay(baseDelay: number): number {
 	const variation = Math.floor(Math.random() * config.afkVariation);
-	// We'll use the base delay plus random variation
 	return baseDelay + variation;
+}
+
+/**
+ * Adds natural variation between actions
+ */
+function addDelay(baseDelay: number): void {
+	// Here we calculate the delay but don't return it
+	const totalDelay = calculateDelay(baseDelay);
+
+	if (config.enableDebug) {
+		api.printGameMessage(`Adding delay of ${totalDelay}ms`);
+	}
 }
 
 export function onStart(): void {
@@ -206,6 +221,9 @@ export function onGameTick(): void {
 			`Attempting to ${fishingAction} at spot index: ${spotIndex}`,
 		);
 	}
+
+	// Add delay before performing the action
+	addDelay(600); // Base delay of 600ms
 
 	// Perform the fishing action
 	api.interactNpc(spotIndex, fishingAction);
