@@ -15,13 +15,13 @@ class Config {
 	fishingMethod: FishingOption;
 	maxDistance: number;
 	enableDebug: boolean;
-	afkVariation: number; // Added for natural behavior
+	afkVariation: number;
 
 	constructor() {
 		this.fishingMethod = FishingOption.SMALL_NET;
 		this.maxDistance = 20;
 		this.enableDebug = false;
-		this.afkVariation = 2000; // Random delay variation in ms
+		this.afkVariation = 2000;
 	}
 }
 
@@ -85,10 +85,10 @@ const FISHING_CONFIGS: Record<FishingOption, FishingSpotConfig> = {
  * Checks if the player is currently fishing using animation ID
  */
 function isPlayerFishing(): boolean {
-	const player = api.getLocalPlayer();
+	const player = client.getLocalPlayer();
 	if (!player) return false;
 
-	const animation = api.getAnimation();
+	const animation = player.getAnimation();
 	return animation === FISHING_ANIMATIONS[config.fishingMethod];
 }
 
@@ -108,25 +108,27 @@ function calculateDistance(
  * Finds the nearest valid fishing spot and returns its index
  */
 function findNearestFishingSpot(): number {
-	const playerX = api.getLocalX();
-	const playerY = api.getLocalY();
-	if (playerX === -1 || playerY === -1) return -1;
+	const player = client.getLocalPlayer();
+	if (!player) return -1;
+
+	const playerX = player.getWorldLocation().getX();
+	const playerY = player.getWorldLocation().getY();
 
 	let nearestSpot = -1;
 	let nearestDistance = config.maxDistance;
 
 	const validSpotIds = FISHING_CONFIGS[config.fishingMethod].spotIds;
-	const npcs = api.getNpcs();
+	const npcs = client.getNpcs();
 
-	for (let i = 0; i < npcs.length; i++) {
-		const npc = npcs[i];
+	for (const [i, npc] of npcs.entries()) {
 		if (!npc || !validSpotIds.includes(npc.getId())) continue;
 
+		const npcLoc = npc.getWorldLocation();
 		const distance = calculateDistance(
 			playerX,
 			playerY,
-			npc.getX(),
-			npc.getY(),
+			npcLoc.getX(),
+			npcLoc.getY(),
 		);
 
 		if (distance < nearestDistance) {
@@ -136,7 +138,7 @@ function findNearestFishingSpot(): number {
 	}
 
 	if (config.enableDebug && nearestSpot !== -1) {
-		api.log(
+		api.printGameMessage(
 			`Found fishing spot at index: ${nearestSpot}, distance: ${nearestDistance}`,
 		);
 	}
@@ -150,11 +152,14 @@ function findNearestFishingSpot(): number {
 function addActionDelay(): void {
 	const baseDelay = 600;
 	const variation = Math.floor(Math.random() * config.afkVariation);
-	api.sleep(baseDelay + variation);
+	// Use standard setTimeout instead of api.sleep
+	setTimeout(() => {}, baseDelay + variation);
 }
 
 export function onStart(): void {
-	api.log(`Started AIO Fishing - Method: ${config.fishingMethod}`);
+	api.printGameMessage(
+		`Started AIO Fishing - Method: ${config.fishingMethod}`,
+	);
 }
 
 export function onGameTick(): void {
@@ -169,12 +174,14 @@ export function onGameTick(): void {
 	const fishingAction = FISHING_CONFIGS[config.fishingMethod].action;
 
 	if (config.enableDebug) {
-		api.log(`Attempting to ${fishingAction} at spot index: ${spotIndex}`);
+		api.printGameMessage(
+			`Attempting to ${fishingAction} at spot index: ${spotIndex}`,
+		);
 	}
 
 	// Add natural delay variation
 	addActionDelay();
 
-	// Interact with the fishing spot
-	api.clickNpc(spotIndex, fishingAction);
+	// Interact with the fishing spot using the correct API method
+	api.interactNpc(spotIndex, fishingAction);
 }
