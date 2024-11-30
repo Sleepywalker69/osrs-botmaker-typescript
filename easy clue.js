@@ -1,8 +1,32 @@
+onStart();
+setInterval(onGameTick, 1000);
+
+client.addChatMessageHandler(onChatMessage);
+
 // Define constants
 const EASY_SCROLL_BOX_ID = 24362;
 const CLUE_SCROLL_EASY_ID = 2686;
 const CLUE_COMPASS_ID = 30363;
+const soxApi = require('sox-api'); // assuming you have installed the sox-api package
 
+// Get a reference to the widgets object
+const widgets = soxApi.widgets;
+
+// Define the packedWidgetId, identifier, opcode, param0, and param1 variables
+const packedWidgetId = 1234;
+const identifier = 5678;
+const opcode = 9012;
+const param0 = 3456;
+const param1 = 7890;
+
+// Call the interactSpecifiedWidget function
+widgets.interactSpecifiedWidget(
+	packedWidgetId,
+	identifier,
+	opcode,
+	param0,
+	param1,
+);
 // Define state type using literal union
 const STATE_NAME_CHECK_INVENTORY = 'CHECK_INVENTORY';
 const STATE_NAME_OPEN_BOX = 'OPEN_BOX';
@@ -35,6 +59,29 @@ const bot = {
 };
 
 // Define functions
+
+// Define game tick function
+function onGameTick() {
+	bot.printGameMessage('Executed JS onGameTick Method');
+	switch (currentState.name) {
+		case STATE_NAME_CHECK_INVENTORY:
+			handleInventoryCheck();
+			break;
+		case STATE_NAME_OPEN_BOX:
+			handleOpenBox();
+			break;
+		case STATE_NAME_READ_CLUE:
+			handleReadClue();
+			break;
+		case STATE_NAME_NAVIGATE:
+			handleNavigation();
+			break;
+		case STATE_NAME_PERFORM_ACTION:
+			handleAction();
+			break;
+	}
+}
+
 function hasTimedOut() {
 	return Date.now() - currentState.lastActionTime > 2400; // ms
 }
@@ -72,17 +119,24 @@ function talkToHintArrowNPC() {
 let isReading = false;
 let currentClueText = '';
 
+// Define inventory check function
 function handleInventoryCheck() {
-	if (!hasTimedOut()) return;
+	console.log('handleInventoryCheck() called'); // DEBUG: Log when the inventory check is triggered
+	if (!hasTimedOut()) return; // DEBUG: Log a message indicating that the check timed out
 
 	const hasClueScroll = checkInventoryForItem(CLUE_SCROLL_EASY_ID);
-	const hasClueBox = checkInventoryForItem(EASY_SCROLL_BOX_ID);
-
+	console.log(
+		`checkInventoryForItem(CLUE_SCROLL_EASY_ID) result: ${hasClueScroll}`,
+	); // DEBUG: Log the result of checking for clue scroll
 	if (hasClueScroll) {
 		updateState(STATE_NAME_READ_CLUE);
 		return;
 	}
 
+	const hasClueBox = checkInventoryForItem(EASY_SCROLL_BOX_ID);
+	console.log(
+		`checkInventoryForItem(EASY_SCROLL_EASY_ID) result: ${hasClueBox}`,
+	); // DEBUG: Log the result of checking for clue box
 	if (!hasClueBox && !hasClueScroll) {
 		bot.printGameMessage('No clue scroll or box found');
 		return;
@@ -94,49 +148,60 @@ function handleInventoryCheck() {
 	}
 }
 
+// Define open box function
 function handleOpenBox() {
-	if (!hasTimedOut()) return;
+	console.log('handleOpenBox() called'); // DEBUG: Log when the open box is triggered
+
+	if (!hasTimedOut()) return; // DEBUG: Log a message indicating that the box timed out
 
 	bot.inventory.interactWithIds([EASY_SCROLL_BOX_ID], ['Open']);
+	console.log(`interactWithIds(EASY_SCROLL_BOX_ID, ['Open']) called`); // DEBUG: Log when interacting with the clue box
 	updateState(STATE_NAME_CHECK_INVENTORY);
 }
 
+// Define read clue function
 function handleReadClue() {
-	if (!hasTimedOut()) return;
+	console.log('handleReadClue() called'); // DEBUG: Log when the read clue is triggered
+
+	if (!hasTimedOut()) return; // DEBUG: Log a message indicating that the clue timed out
 
 	bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Read']);
+	console.log(`interactWithIds(CLUE_SCROLL_EASY_ID, ['Read']) called`); // DEBUG: Log when interacting with the clue scroll
 	isReading = true;
 	updateState(STATE_NAME_NAVIGATE);
 }
 
+// Define navigation function
 function handleNavigation() {
-	if (!hasTimedOut()) return;
+	console.log('handleNavigation() called'); // DEBUG: Log when the navigation is triggered
+
+	if (!hasTimedOut()) return; // DEBUG: Log a message indicating that the navigation timed out
 
 	const npc = client.getHintArrowNpc();
 	if (npc !== null) {
 		talkToHintArrowNPC(npc);
+		console.log(`talkToHintArrowNPC(${npc}) called`); // DEBUG: Log when talking to the hint arrow NPC
 	} else {
 		bot.printGameMessage('No NPC with Hint Arrow found');
 	}
 }
 
+// Define action function
 function handleAction() {
-	if (!hasTimedOut()) return;
+	console.log('handleAction() called'); // DEBUG: Log when the action is triggered
+
+	if (!hasTimedOut()) return; // DEBUG: Log a message indicating that the action timed out
 
 	if (isReading) {
 		currentClueText = '';
 		isReading = false;
 		updateState(STATE_NAME_CHECK_INVENTORY);
+		console.log('action while reading clue - resetting'); // DEBUG: Log when resetting the state
 		return;
 	}
 
 	const hasSpade = checkInventoryForItem(952);
-	if (hasSpade && currentClueText.toLowerCase().includes('dig')) {
-		bot.printGameMessage('Digging at location');
-		bot.inventory.interactWithIds([952], ['Dig']);
-		updateState(STATE_NAME_CHECK_INVENTORY);
-		return;
-	}
+	console.log(`checkInventoryForItem(952) result: ${hasSpade}`); // DEBUG: Log the result of checking for spade
 
 	const hasObjectToOpen = bot.objects.getTileObjectsWithIds([]);
 	for (var i = 0; i < hasObjectToOpen.length; i++) {
@@ -172,27 +237,6 @@ function handleAction() {
 	}
 }
 
-// Define game tick function
-function onGameTick() {
-	switch (currentState.name) {
-		case STATE_NAME_CHECK_INVENTORY:
-			handleInventoryCheck();
-			break;
-		case STATE_NAME_OPEN_BOX:
-			handleOpenBox();
-			break;
-		case STATE_NAME_READ_CLUE:
-			handleReadClue();
-			break;
-		case STATE_NAME_NAVIGATE:
-			handleNavigation();
-			break;
-		case STATE_NAME_PERFORM_ACTION:
-			handleAction();
-			break;
-	}
-}
-
 // Define chat message function
 function onChatMessage(type, name, message) {
 	if (
@@ -206,14 +250,3 @@ function onChatMessage(type, name, message) {
 		updateState(STATE_NAME_CHECK_INVENTORY);
 	}
 }
-
-// Define required interface implementations
-function onNpcAnimationChanged(npc) {}
-function onActorDeath(actor) {}
-function onHitsplatApplied(actor, hitsplat) {}
-function onInteractingChanged(sourceActor, targetActor) {}
-
-onStart();
-setInterval(onGameTick, 1000);
-
-client.addChatMessageHandler(onChatMessage);
