@@ -32,6 +32,7 @@
 		"@types/eslint": "^8.56.5",
 		"@types/eslint__js": "^8.42.3",
 		"@types/fs-extra": "^11.0.4",
+		"@types/node": "^22.10.1",
 		"@typescript-eslint/eslint-plugin": "^7.1.1",
 		"@typescript-eslint/parser": "^7.1.1",
 		"chalk": "^4.1.0",

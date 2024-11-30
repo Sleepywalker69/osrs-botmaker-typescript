@@ -1,5 +1,5 @@
 // No need to import types as they are globally available in the Botmaker environment
-import { bot } from '@deafwave/osrs-botmaker-types';
+
 // Enum for fishing options
 enum FishingOption {
 	SMALL_NET = 'Small Net',

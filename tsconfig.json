@@ -12,6 +12,11 @@
 		"skipLibCheck": true,
 		"skipDefaultLibCheck": true,
 		"baseUrl": ".",
+		"paths": {
+			"@deafwave/osrs-botmaker-types": [
+				"node_modules/@deafwave/osrs-botmaker-types/dist/src/index.d.ts"
+			]
+		},
 		"checkJs": false,
 		"allowJs": false,
 		"resolveJsonModule": true,
@@ -19,9 +24,11 @@
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
 		"outDir": "./dist",
-		"types": [],
+		"types": ["node"],
+		"typeRoots": ["./node_modules/@types", "./src/types"],
 		"plugins": []
 	},
-	"include": ["src/**/*.ts"],
+	"include": ["src/**/*.ts", "src/types/**/*.d.ts"],
 	"exclude": ["node_modules", "tmp"]
 }
+
