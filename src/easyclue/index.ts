@@ -1,10 +1,10 @@
 import type {
 	ChatMessageType,
-	HeadIcon,
 	NPC,
 	Actor,
 	Hitsplat,
 	TileObject,
+	HintArrowType,
 } from '@deafwave/osrs-botmaker-types';
 
 const EASY_SCROLL_BOX_ID = 24362;
@@ -97,14 +97,22 @@ function handleNavigation(): void {
 
 function findMarkedNpc(): NPC | undefined {
 	const allNpcs = bot.npcs.getWithIds([]);
-	return allNpcs.find(
-		(npc) => npc && bot.npcs.getHeadIcon(npc) === HeadIcon.QUEST,
-	);
+	return allNpcs.find((npc) => {
+		const hintArrow = bot.client.getHintArrowNpc();
+		return hintArrow && hintArrow === npc;
+	});
 }
 
 function findMarkedObject(): TileObject | undefined {
 	const objects = bot.objects.getTileObjectsWithIds([]);
-	return objects.find((object) => object && object.getClickbox());
+	return objects.find((object) => {
+		if (!object) return false;
+		const hintArrowType = bot.client.getHintArrowType();
+		return (
+			hintArrowType === HintArrowType.NONE &&
+			object.getClickbox() !== null
+		);
+	});
 }
 
 function handleAction(): void {
