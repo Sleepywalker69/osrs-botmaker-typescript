@@ -12,26 +12,44 @@ const CLUE_SCROLL_EASY_ID = 2677;
 const CLUE_COMPASS_ID = 30363;
 const SPADE_ID = 952;
 const EQUIPMENT_CLUE_KEYWORDS = ['equip', 'wear', 'equipped'];
-const CLOSED_OBJECT_ACTION = 'Open';
-const SEARCH_ITEM = [SPADE_ID, CLUE_COMPASS_ID];
+const INTERACTION_TIMEOUT = 2400; // ms
+const MAX_DISTANCE = 20;
 
-let isReading: boolean = false;
-let currentClueText: string = '';
-let currentState: 'NAVIGATE' | 'CHECK_INVENTORY' = 'CHECK_INVENTORY';
+interface State {
+	name:
+		| 'CHECK_INVENTORY'
+		| 'OPEN_BOX'
+		| 'READ_CLUE'
+		| 'NAVIGATE'
+		| 'PERFORM_ACTION';
+	lastActionTime: number;
+}
+
+let currentState: State = {
+	name: 'CHECK_INVENTORY',
+	lastActionTime: 0,
+};
+
+let isReading = false;
+let currentClueText = '';
 
 export function onStart(): void {
-	currentState = 'CHECK_INVENTORY';
+	currentState = {
+		name: 'CHECK_INVENTORY',
+		lastActionTime: Date.now(),
+	};
 	bot.printGameMessage('Easy Clue Solver Started');
 }
 
-export function onGameTick(): void {
-	if (currentState === 'NAVIGATE' && bot.localPlayerDistance() > 0) {
-		handleNavigation();
-	} else if (currentState !== 'CHECK_INVENTORY') {
-		setTimeout(() => {
-			currentState = 'CHECK_INVENTORY';
-		}, 10000);
-	}
+function hasTimedOut(): boolean {
+	return Date.now() - currentState.lastActionTime > INTERACTION_TIMEOUT;
+}
+
+function updateState(newState: State['name']): void {
+	currentState = {
+		name: newState,
+		lastActionTime: Date.now(),
+	};
 }
 
 function checkInventoryForItem(itemId: number): boolean {
@@ -39,75 +57,12 @@ function checkInventoryForItem(itemId: number): boolean {
 	return items !== undefined && items !== null;
 }
 
-function handleInventoryCheck(): void {
-	const hasClueScroll = checkInventoryForItem(CLUE_SCROLL_EASY_ID);
-	const hasClueBox = checkInventoryForItem(EASY_SCROLL_BOX_ID);
-	const hasClueCompass = checkInventoryForItem(CLUE_COMPASS_ID);
+function hasObjectAction(object: TileObject, action: string): boolean {
+	const composition = bot.objects.getTileObjectComposition(object.getId());
+	if (!composition) return false;
 
-	if (!hasClueScroll && !hasClueBox) {
-		bot.printGameMessage('No clue scroll or box found');
-		return;
-	}
-
-	if (hasClueBox) {
-		currentState = 'OPEN_BOX';
-		return;
-	}
-
-	if (hasClueScroll && !isReading) {
-		currentState = 'READ_CLUE';
-		return;
-	}
-
-	if (hasClueCompass) {
-		currentState = 'NAVIGATE';
-		return;
-	}
-}
-
-function hasObjectAction(objectId: number, action: string): boolean {
-	const objectComposition = bot.objects.getTileObjectComposition(objectId);
-	const actions = objectComposition.getActions();
-	for (let i = 0; i < actions.length; i++) {
-		if (actions[i] && actions[i].toLowerCase() === action.toLowerCase()) {
-			return true;
-		}
-	}
-	return false;
-}
-
-function openClosedObject(objectId: number): void {
-	if (hasObjectAction(objectId, CLOSED_OBJECT_ACTION)) {
-		bot.objects.interactSuppliedObject(
-			bot.objects.getTileObject(objectId),
-			'Open',
-		);
-	} else if (hasObjectAction(objectId, 'Close')) {
-		bot.objects.interactSuppliedObject(
-			bot.objects.getTileObject(objectId),
-			'Close',
-		);
-	}
-}
-
-function handleOpenBox(): void {
-	bot.inventory.interactWithIds([EASY_SCROLL_BOX_ID], ['Open']);
-	currentState = 'CHECK_INVENTORY';
-}
-
-function handleReadClue(): void {
-	bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Read']);
-	isReading = true;
-	currentState = 'CHECK_INVENTORY';
-}
-
-function talkToHintArrowNPC(): void {
-	const npc = client.getHintArrowNpc();
-	if (npc !== null) {
-		bot.npcs.interactSupplied(npc, 'Talk-to');
-	} else {
-		bot.printGameMessage('No NPC with Hint Arrow found');
-	}
+	const actions = composition.getActions();
+	return actions.some((a) => a && a.toLowerCase() === action.toLowerCase());
 }
 
 function findMarkedObject(): TileObject | undefined {
@@ -122,60 +77,138 @@ function findMarkedObject(): TileObject | undefined {
 	});
 }
 
-function findMarkedNpc(): NPC | undefined {
-	const allNpcs = bot.npcs.getWithIds([]);
-	return allNpcs.find((npc) => {
-		const hintArrow = bot.client.getHintArrowNpc();
-		return hintArrow && hintArrow === npc;
-	});
+function handleInventoryCheck(): void {
+	if (!hasTimedOut()) return;
+
+	const hasClueScroll = checkInventoryForItem(CLUE_SCROLL_EASY_ID);
+	const hasClueBox = checkInventoryForItem(EASY_SCROLL_BOX_ID);
+	const hasClueCompass = checkInventoryForItem(CLUE_COMPASS_ID);
+
+	if (!hasClueScroll && !hasClueBox) {
+		bot.printGameMessage('No clue scroll or box found');
+		return;
+	}
+
+	if (hasClueBox) {
+		updateState('OPEN_BOX');
+		return;
+	}
+
+	if (hasClueScroll && !isReading) {
+		updateState('READ_CLUE');
+		return;
+	}
+
+	if (hasClueCompass) {
+		updateState('NAVIGATE');
+	}
+}
+
+function handleOpenBox(): void {
+	if (!hasTimedOut()) return;
+
+	bot.inventory.interactWithIds([EASY_SCROLL_BOX_ID], ['Open']);
+	updateState('CHECK_INVENTORY');
+}
+
+function handleReadClue(): void {
+	if (!hasTimedOut()) return;
+
+	bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Read']);
+	isReading = true;
+	updateState('CHECK_INVENTORY');
+}
+
+function handleNavigation(): void {
+	if (!hasTimedOut()) return;
+
+	if (!bot.localPlayerMoving()) {
+		bot.inventory.interactWithIds([CLUE_COMPASS_ID], ['Use']);
+		updateState('PERFORM_ACTION');
+	}
+}
+
+function talkToHintArrowNPC(): boolean {
+	const npc = bot.client.getHintArrowNpc();
+	if (npc !== null) {
+		bot.npcs.interactSupplied(npc, 'Talk-to');
+		return true;
+	}
+	return false;
+}
+
+function handleMarkedObject(): boolean {
+	const markedObject = findMarkedObject();
+	if (!markedObject) return false;
+
+	if (hasObjectAction(markedObject, 'Open')) {
+		bot.objects.interactSuppliedObject(markedObject, 'Open');
+		return true;
+	}
+
+	bot.objects.interactSuppliedObject(markedObject, 'Search');
+	return true;
 }
 
 function handleAction(): void {
+	if (!hasTimedOut()) return;
+
 	if (bot.localPlayerMoving()) {
 		return;
 	}
 
-	const markedNpc = findMarkedNpc();
-	if (markedNpc) {
-		bot.printGameMessage('Found marked NPC - talking');
-		bot.npcs.interactSupplied(markedNpc, 'Talk-to');
-		currentState = 'CHECK_INVENTORY';
+	// Try talking to NPCs first
+	if (talkToHintArrowNPC()) {
+		updateState('CHECK_INVENTORY');
 		isReading = false;
 		return;
 	}
 
-	const markedObject = findMarkedObject();
-	if (markedObject) {
-		bot.printGameMessage('Found marked object - searching');
-		openClosedObject(markedObject.id);
-		currentState = 'CHECK_INVENTORY';
+	// Then try interacting with objects
+	if (handleMarkedObject()) {
+		updateState('CHECK_INVENTORY');
 		isReading = false;
 		return;
 	}
 
+	// Finally try digging if we have a spade and clue indicates it
 	const hasSpade = checkInventoryForItem(SPADE_ID);
 	if (hasSpade && currentClueText.toLowerCase().includes('dig')) {
 		bot.printGameMessage('Digging at location');
 		bot.inventory.interactWithIds([SPADE_ID], ['Dig']);
-		currentState = 'CHECK_INVENTORY';
-		isReading = false;
-		return;
-	}
-
-	const hasSearchItem = SEARCH_ITEM.some((item) =>
-		checkInventoryForItem(item),
-	);
-	if (hasSearchItem && currentClueText.toLowerCase().includes('search')) {
-		bot.printGameMessage('Searching at location');
-		talkToHintArrowNPC();
-		currentState = 'CHECK_INVENTORY';
+		updateState('CHECK_INVENTORY');
 		isReading = false;
 		return;
 	}
 
 	bot.printGameMessage('No action found - resetting');
-	currentState = 'CHECK_INVENTORY';
+	updateState('CHECK_INVENTORY');
 	isReading = false;
+}
+
+export function onGameTick(): void {
+	switch (currentState.name) {
+		case 'CHECK_INVENTORY': {
+			handleInventoryCheck();
+			break;
+		}
+		case 'OPEN_BOX': {
+			handleOpenBox();
+			break;
+		}
+		case 'READ_CLUE': {
+			handleReadClue();
+			break;
+		}
+		case 'NAVIGATE': {
+			handleNavigation();
+			break;
+		}
+		case 'PERFORM_ACTION': {
+			handleAction();
+			break;
+		}
+	}
 }
 
 export function onChatMessage(
@@ -194,10 +227,19 @@ export function onChatMessage(
 		) {
 			bot.printGameMessage('Equipment clue detected - dropping');
 			bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Drop']);
-			currentState = 'CHECK_INVENTORY';
+			updateState('CHECK_INVENTORY');
 			return;
 		}
 
-		currentState = 'NAVIGATE';
+		updateState('NAVIGATE');
 	}
 }
+
+// Required interface implementations
+export function onNpcAnimationChanged(_npc: Actor): void {}
+export function onActorDeath(_actor: Actor): void {}
+export function onHitsplatApplied(_actor: Actor, _hitsplat: Hitsplat): void {}
+export function onInteractingChanged(
+	_sourceActor: Actor,
+	_targetActor: Actor,
+): void {}
