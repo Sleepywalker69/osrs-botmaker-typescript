@@ -15,9 +15,9 @@ const EQUIPMENT_CLUE_KEYWORDS = ['equip', 'wear', 'equipped'];
 const CLOSED_OBJECT_ACTION = 'Open';
 const SEARCH_ITEM = [SPADE_ID, CLUE_COMPASS_ID];
 
-let isReading = false;
-let currentClueText = '';
-let currentState = 'CHECK_INVENTORY';
+let isReading: boolean = false;
+let currentClueText: string = '';
+let currentState: 'NAVIGATE' | 'CHECK_INVENTORY' = 'CHECK_INVENTORY';
 
 export function onStart(): void {
 	currentState = 'CHECK_INVENTORY';
@@ -200,23 +200,4 @@ export function onChatMessage(
 
 		currentState = 'NAVIGATE';
 	}
-}
-
-export function onNpcAnimationChanged(_npc: Actor): void {
-	// Required by interface
-}
-
-export function onActorDeath(_actor: Actor): void {
-	// Required by interface
-}
-
-export function onHitsplatApplied(_actor: Actor, _hitsplat: Hitsplat): void {
-	// Required by interface
-}
-
-export function onInteractingChanged(
-	_sourceActor: Actor,
-	_targetActor: Actor,
-): void {
-	// Required by interface
 }
