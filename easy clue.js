@@ -2,7 +2,6 @@
 const EASY_SCROLL_BOX_ID = 24362;
 const CLUE_SCROLL_EASY_ID = 2686;
 const CLUE_COMPASS_ID = 30363;
-const SPADE_ID = 952;
 
 // Define state type using literal union
 const STATE_NAME_CHECK_INVENTORY = 'CHECK_INVENTORY';
@@ -19,9 +18,6 @@ function State(name, lastActionTime) {
 
 let currentState = new State(STATE_NAME_CHECK_INVENTORY, 0);
 
-let isReading = false;
-let currentClueText = '';
-
 // Define bot functions
 const bot = {
 	printGameMessage: (message) => console.log(message),
@@ -33,16 +29,12 @@ const bot = {
 		interactSuppliedObject: (object, action) => {},
 	},
 	npcs: {
-		getWithIds: () => [],
+		talkToHintArrowNPC: () => {},
 		interactSupplied: (npc, action) => {},
 	},
 };
 
-function onStart() {
-	currentState = new State(STATE_NAME_CHECK_INVENTORY, Date.now());
-	bot.printGameMessage('Easy Clue Solver Started');
-}
-
+// Define functions
 function hasTimedOut() {
 	return Date.now() - currentState.lastActionTime > 2400; // ms
 }
@@ -56,37 +48,42 @@ function checkInventoryForItem(itemId) {
 	return items !== undefined && items !== null;
 }
 
-function hasObjectAction(object, action) {
-	try {
-		const objectId = object.getId();
-		const composition = bot.objects.getTileObjectComposition(objectId);
-		if (!composition) return false;
+function hasObjectAction(objectId, action) {
+	var objectComposition = bot.objects.getTileObjectComposition(objectId);
+	var actions = objectComposition.getActions();
+	for (var i = 0; i < actions.length; i++) {
+		if (actions[i] && actions[i] == action) {
+			return true;
+		}
+	}
+	return false;
+}
 
-		const actions = composition.getActions();
-		return actions.some(
-			(a) => a && a.toLowerCase() === action.toLowerCase(),
-		);
-	} catch (error) {
-		return false;
+function talkToHintArrowNPC() {
+	var npc = client.getHintArrowNpc();
+	if (npc !== null) {
+		bot.npcs.talkToHintArrowNPC(npc);
+	} else {
+		bot.printGameMessage('No NPC with Hint Arrow found');
 	}
 }
 
-function findMarkedObject() {
-	const objects = bot.objects.getTileObjectsWithIds([]);
-	return objects.find((object) => {
-		if (!object) return false;
-		return object.getClickbox() !== null;
-	});
-}
+// Define states
+let isReading = false;
+let currentClueText = '';
 
 function handleInventoryCheck() {
 	if (!hasTimedOut()) return;
 
 	const hasClueScroll = checkInventoryForItem(CLUE_SCROLL_EASY_ID);
 	const hasClueBox = checkInventoryForItem(EASY_SCROLL_BOX_ID);
-	const hasClueCompass = checkInventoryForItem(CLUE_COMPASS_ID);
 
-	if (!hasClueScroll && !hasClueBox) {
+	if (hasClueScroll) {
+		updateState(STATE_NAME_READ_CLUE);
+		return;
+	}
+
+	if (!hasClueBox && !hasClueScroll) {
 		bot.printGameMessage('No clue scroll or box found');
 		return;
 	}
@@ -94,15 +91,6 @@ function handleInventoryCheck() {
 	if (hasClueBox) {
 		updateState(STATE_NAME_OPEN_BOX);
 		return;
-	}
-
-	if (hasClueScroll && !isReading) {
-		updateState(STATE_NAME_READ_CLUE);
-		return;
-	}
-
-	if (hasClueCompass) {
-		updateState(STATE_NAME_NAVIGATE);
 	}
 }
 
@@ -118,81 +106,73 @@ function handleReadClue() {
 
 	bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Read']);
 	isReading = true;
-	updateState(STATE_NAME_CHECK_INVENTORY);
+	updateState(STATE_NAME_NAVIGATE);
 }
 
 function handleNavigation() {
 	if (!hasTimedOut()) return;
 
-	if (!bot.localPlayerMoving()) {
-		bot.inventory.interactWithIds([CLUE_COMPASS_ID], ['Use']);
-		updateState(STATE_NAME_PERFORM_ACTION);
+	const npc = client.getHintArrowNpc();
+	if (npc !== null) {
+		talkToHintArrowNPC(npc);
+	} else {
+		bot.printGameMessage('No NPC with Hint Arrow found');
 	}
-}
-
-function talkToHintArrowNPC() {
-	const nearbyNpcs = bot.npcs.getWithIds([]);
-	const targetNpc = nearbyNpcs.find((npc) => {
-		try {
-			return npc && npc.getInteracting() === null && !npc.isDead();
-		} catch (error) {
-			return false;
-		}
-	});
-
-	if (targetNpc) {
-		bot.npcs.interactSupplied(targetNpc, 'Talk-to');
-		return true;
-	}
-	return false;
-}
-
-function handleMarkedObject() {
-	const markedObject = findMarkedObject();
-	if (!markedObject) return false;
-
-	if (hasObjectAction(markedObject, 'Open')) {
-		bot.objects.interactSuppliedObject(markedObject, 'Open');
-		return true;
-	}
-
-	bot.objects.interactSuppliedObject(markedObject, 'Search');
-	return true;
 }
 
 function handleAction() {
 	if (!hasTimedOut()) return;
 
-	if (bot.localPlayerMoving()) {
-		return;
-	}
-
-	if (talkToHintArrowNPC()) {
-		updateState(STATE_NAME_CHECK_INVENTORY);
+	if (isReading) {
+		currentClueText = '';
 		isReading = false;
-		return;
-	}
-
-	if (handleMarkedObject()) {
 		updateState(STATE_NAME_CHECK_INVENTORY);
-		isReading = false;
 		return;
 	}
 
-	const hasSpade = checkInventoryForItem(SPADE_ID);
+	const hasSpade = checkInventoryForItem(952);
 	if (hasSpade && currentClueText.toLowerCase().includes('dig')) {
 		bot.printGameMessage('Digging at location');
-		bot.inventory.interactWithIds([SPADE_ID], ['Dig']);
+		bot.inventory.interactWithIds([952], ['Dig']);
 		updateState(STATE_NAME_CHECK_INVENTORY);
-		isReading = false;
 		return;
 	}
 
-	bot.printGameMessage('No action found - resetting');
-	updateState(STATE_NAME_CHECK_INVENTORY);
-	isReading = false;
+	const hasObjectToOpen = bot.objects.getTileObjectsWithIds([]);
+	for (var i = 0; i < hasObjectToOpen.length; i++) {
+		if (hasObjectAction(hasObjectToOpen[i].getId(), 'Open')) {
+			bot.objects.interactSuppliedObject(hasObjectToOpen[i], 'Open');
+			updateState(STATE_NAME_CHECK_INVENTORY);
+			return;
+		}
+	}
+
+	const distance = client.getDistanceToLocation();
+	if (distance > 0) {
+		bot.printGameMessage('Walking to location...');
+		bot.inventory.interactWithIds([CLUE_COMPASS_ID], ['Use']);
+		updateState(STATE_NAME_NAVIGATE);
+	} else {
+		bot.printGameMessage('Performing action...');
+		const actions = client.getAvailableActions();
+		for (var i = 0; i < actions.length; i++) {
+			if (actions[i] == 'Talk-to') {
+				bot.npcs.interactSupplied(client.getHintArrowNpc(), 'Talk-to');
+				updateState(STATE_NAME_CHECK_INVENTORY);
+				return;
+			} else if (actions[i] == 'Search') {
+				bot.objects.interactSuppliedObject(
+					client.getObjectUnderCursor(),
+					'Search',
+				);
+				updateState(STATE_NAME_CHECK_INVENTORY);
+				return;
+			}
+		}
+	}
 }
 
+// Define game tick function
 function onGameTick() {
 	switch (currentState.name) {
 		case STATE_NAME_CHECK_INVENTORY:
@@ -213,27 +193,21 @@ function onGameTick() {
 	}
 }
 
+// Define chat message function
 function onChatMessage(type, name, message) {
-	if (isReading) {
-		currentClueText = message;
-		isReading = false;
-
-		if (
-			['equip', 'wear', 'equipped'].some((keyword) =>
-				message.toLowerCase().includes(keyword),
-			)
-		) {
-			bot.printGameMessage('Equipment clue detected - dropping');
-			bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Drop']);
-			updateState(STATE_NAME_CHECK_INVENTORY);
-			return;
-		}
-
-		updateState(STATE_NAME_NAVIGATE);
+	if (
+		isReading &&
+		['equip', 'wear', 'equipped'].some((keyword) =>
+			message.toLowerCase().includes(keyword),
+		)
+	) {
+		bot.printGameMessage('Equipment clue detected - dropping');
+		bot.inventory.interactWithIds([CLUE_SCROLL_EASY_ID], ['Drop']);
+		updateState(STATE_NAME_CHECK_INVENTORY);
 	}
 }
 
-// Required interface implementations
+// Define required interface implementations
 function onNpcAnimationChanged(npc) {}
 function onActorDeath(actor) {}
 function onHitsplatApplied(actor, hitsplat) {}
@@ -241,3 +215,5 @@ function onInteractingChanged(sourceActor, targetActor) {}
 
 onStart();
 setInterval(onGameTick, 1000);
+
+client.addChatMessageHandler(onChatMessage);
