@@ -12,6 +12,8 @@ const CLUE_SCROLL_EASY_ID = 2677;
 const CLUE_COMPASS_ID = 30363;
 const SPADE_ID = 952;
 const EQUIPMENT_CLUE_KEYWORDS = ['equip', 'wear', 'equipped'];
+const CLOSED_OBJECT_ACTION = 'Open';
+const SEARCH_ITEM = [SPADE_ID, CLUE_COMPASS_ID];
 
 let isReading = false;
 let currentClueText = '';
@@ -23,27 +25,12 @@ export function onStart(): void {
 }
 
 export function onGameTick(): void {
-	switch (currentState) {
-		case 'CHECK_INVENTORY': {
-			handleInventoryCheck();
-			break;
-		}
-		case 'OPEN_BOX': {
-			handleOpenBox();
-			break;
-		}
-		case 'READ_CLUE': {
-			handleReadClue();
-			break;
-		}
-		case 'NAVIGATE': {
-			handleNavigation();
-			break;
-		}
-		case 'PERFORM_ACTION': {
-			handleAction();
-			break;
-		}
+	if (currentState === 'NAVIGATE' && bot.localPlayerDistance() > 0) {
+		handleNavigation();
+	} else if (currentState !== 'CHECK_INVENTORY') {
+		setTimeout(() => {
+			currentState = 'CHECK_INVENTORY';
+		}, 10000);
 	}
 }
 
@@ -74,6 +61,32 @@ function handleInventoryCheck(): void {
 
 	if (hasClueCompass) {
 		currentState = 'NAVIGATE';
+		return;
+	}
+}
+
+function hasObjectAction(objectId: number, action: string): boolean {
+	const objectComposition = bot.objects.getTileObjectComposition(objectId);
+	const actions = objectComposition.getActions();
+	for (let i = 0; i < actions.length; i++) {
+		if (actions[i] && actions[i].toLowerCase() === action.toLowerCase()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function openClosedObject(objectId: number): void {
+	if (hasObjectAction(objectId, CLOSED_OBJECT_ACTION)) {
+		bot.objects.interactSuppliedObject(
+			bot.objects.getTileObject(objectId),
+			'Open',
+		);
+	} else if (hasObjectAction(objectId, 'Close')) {
+		bot.objects.interactSuppliedObject(
+			bot.objects.getTileObject(objectId),
+			'Close',
+		);
 	}
 }
 
@@ -88,19 +101,13 @@ function handleReadClue(): void {
 	currentState = 'CHECK_INVENTORY';
 }
 
-function handleNavigation(): void {
-	if (!bot.localPlayerMoving()) {
-		bot.inventory.interactWithIds([CLUE_COMPASS_ID], ['Use']);
-		currentState = 'PERFORM_ACTION';
+function talkToHintArrowNPC(): void {
+	const npc = client.getHintArrowNpc();
+	if (npc !== null) {
+		bot.npcs.interactSupplied(npc, 'Talk-to');
+	} else {
+		bot.printGameMessage('No NPC with Hint Arrow found');
 	}
-}
-
-function findMarkedNpc(): NPC | undefined {
-	const allNpcs = bot.npcs.getWithIds([]);
-	return allNpcs.find((npc) => {
-		const hintArrow = bot.client.getHintArrowNpc();
-		return hintArrow && hintArrow === npc;
-	});
 }
 
 function findMarkedObject(): TileObject | undefined {
@@ -112,6 +119,14 @@ function findMarkedObject(): TileObject | undefined {
 			hintArrowType === HintArrowType.NONE &&
 			object.getClickbox() !== null
 		);
+	});
+}
+
+function findMarkedNpc(): NPC | undefined {
+	const allNpcs = bot.npcs.getWithIds([]);
+	return allNpcs.find((npc) => {
+		const hintArrow = bot.client.getHintArrowNpc();
+		return hintArrow && hintArrow === npc;
 	});
 }
 
@@ -132,7 +147,7 @@ function handleAction(): void {
 	const markedObject = findMarkedObject();
 	if (markedObject) {
 		bot.printGameMessage('Found marked object - searching');
-		bot.objects.interactSuppliedObject(markedObject, 'Search');
+		openClosedObject(markedObject.id);
 		currentState = 'CHECK_INVENTORY';
 		isReading = false;
 		return;
@@ -142,6 +157,17 @@ function handleAction(): void {
 	if (hasSpade && currentClueText.toLowerCase().includes('dig')) {
 		bot.printGameMessage('Digging at location');
 		bot.inventory.interactWithIds([SPADE_ID], ['Dig']);
+		currentState = 'CHECK_INVENTORY';
+		isReading = false;
+		return;
+	}
+
+	const hasSearchItem = SEARCH_ITEM.some((item) =>
+		checkInventoryForItem(item),
+	);
+	if (hasSearchItem && currentClueText.toLowerCase().includes('search')) {
+		bot.printGameMessage('Searching at location');
+		talkToHintArrowNPC();
 		currentState = 'CHECK_INVENTORY';
 		isReading = false;
 		return;
