@@ -1,0 +1,413 @@
+client.addChatMessage(ChatMessageType arg0, String arg1, String arg2, String arg3): MessageNode
+client.addChatMessage(ChatMessageType arg0, String arg1, String arg2, String arg3, Boolean arg4): MessageNode
+client.changeMemoryMode(Boolean arg0)
+client.changeWorldUrl()
+client.checkClickbox(Projection arg0, Model arg1, Number arg2, Number arg3, Number arg4, Number arg5, Number arg6)
+client.clearHintArrow()
+client.createIndexedSprite(): IndexedSprite
+client.createItemSprite(Number arg0, Number arg1, Number arg2, Number arg3, Number arg4, Boolean arg5, Number arg6): SpritePixels
+client.createProjectile(Number id, Number plane, Number startX, Number startY, Number startZ, Number startCycle, Number endCycle, Number slo
+client.createRuneLiteObject(): RuneLiteObject
+client.createScriptEvent(Array arg0): ScriptEvent
+client.createSpritePixels(Array arg0, Number arg1, Number arg2): SpritePixels
+client.createWorld(): World
+client.crossInterface(WidgetNode arg0, Boolean arg1)
+client.draw2DMenu(Number arg0)
+client.drawInstanceMap(Number arg0): SpritePixels
+client.drawOriginalMenu(Number arg0)
+client.get3dZoom(): Number
+client.getAccountHash(): Number
+client.getAccountType(): AccountType
+client.getAmbientSoundEffects(): Deque
+client.getAnimationCache(): NodeCache
+client.getAnimationInterpolationFilter(): IntPredicate
+client.getArray(Number arg0): Array
+client.getArraySizes(Number arg0): Number
+client.getBaseX(): Number
+client.getBaseY(): Number
+client.getBoostedSkillLevel(Skill arg0): Number
+client.getBoostedSkillLevels(): Array
+client.getBufferProvider(): BufferProvider
+client.getBuildID(): String
+client.getCachedNPCs(): Array
+client.getCachedPlayers(): Array
+client.getCallbacks(): Callbacks
+client.getCameraFocalPointX(): Number
+client.getCameraFocalPointY(): Number
+client.getCameraFocalPointZ(): Number
+client.getCameraFpPitch(): Number
+client.getCameraFpX(): Number
+client.getCameraFpY(): Number
+client.getCameraFpYaw(): Number
+client.getCameraFpZ(): Number
+client.getCameraMode(): Number
+client.getCameraPitch(): Number
+client.getCameraPitchTarget(): Number
+client.getCameraX(): Number
+client.getCameraY(): Number
+client.getCameraYaw(): Number
+client.getCameraYawTarget(): Number
+client.getCameraZ(): Number
+client.getCanvas(): Canvas
+client.getCanvasHeight(): Number
+client.getCanvasWidth(): Number
+client.getCenterX(): Number
+client.getCenterY(): Number
+client.getChatLineMap(): Map
+client.getClanChannel(): ClanChannel
+client.getClanChannel(Number arg0): ClanChannel
+client.getClanSettings(): ClanSettings
+client.getClanSettings(Number arg0): ClanSettings
+client.getClientThread(): Thread
+client.getCollisionMaps(): Array
+client.getComponentTable(): HashTable
+client.getCrossSprites(): Array
+client.getCrossWorldMessagesIds(): Array
+client.getCrossWorldMessagesIdsIndex(): Number
+client.getCurrentLoginField(): Number
+client.getDBRowConfig(Number arg0): DBRowConfig
+client.getDBRowsByValue(Number arg0, Number arg1, Number arg2, Object arg3): List
+client.getDbtableField(Number arg0, Number arg1, Number arg2): Array
+client.getDragTime(): Number
+client.getDraggedOnWidget(): Widget
+client.getDraggedWidget(): Widget
+client.getDraw2DMask(): Number
+client.getDrawCallbacks(): DrawCallbacks
+client.getEnergy(): Number
+client.getEnum(Number arg0): EnumComposition
+client.getExpandedMapLoading(): Number
+client.getFPS(): Number
+client.getFollower(): NPC
+client.getFriendContainer(): FriendContainer
+client.getFriendsChatManager(): FriendsChatManager
+client.getGameCycle(): Number
+client.getGameState(): GameState
+client.getGrandExchangeOffers(): Array
+client.getGraphicsObjects(): Deque
+client.getGuestClanChannel(): ClanChannel
+client.getGuestClanSettings(): ClanSettings
+client.getHintArrowNpc(): NPC
+client.getHintArrowPlayer(): Player
+client.getHintArrowPoint(): WorldPoint
+client.getHintArrowType(): Number
+client.getIdleTimeout(): Number
+client.getIgnoreContainer(): NameableContainer
+client.getIndex(Number arg0): IndexDataBase
+client.getIndexConfig(): IndexDataBase
+client.getIndexScripts(): IndexDataBase
+client.getIndexSprites(): IndexDataBase
+client.getInstanceTemplateChunks(): Array
+client.getIntStack(): Array
+client.getIntStackSize(): Number
+client.getItemCompositionCache(): NodeCache
+client.getItemContainer(Number arg0): ItemContainer
+client.getItemContainers(): HashTable
+client.getItemCount(): Number
+client.getItemDefinition(Number arg0): ItemComposition
+client.getItemModelCache(): NodeCache
+client.getItemSpriteCache(): NodeCache
+client.getKeyboardIdleTicks(): Number
+client.getLauncherDisplayName(): String
+client.getLocalDestinationLocation(): LocalPoint
+client.getLocalPlayer(): Player
+client.getLoginIndex(): Number
+client.getMapDots(): Array
+client.getMapElementConfig(Number arg0): MapElementConfig
+client.getMapIcons(): Array
+client.getMapRegions(): Array
+client.getMapScene(): Array
+client.getMappings(): Number
+client.getMenu(): Menu
+client.getMenuEntries(): Array
+client.getMenuHeight(): Number
+client.getMenuScroll(): Number
+client.getMenuWidth(): Number
+client.getMenuX(): Number
+client.getMenuY(): Number
+client.getMessages(): IterableHashTable
+client.getMinimapZoom(): Number
+client.getModIcons(): Array
+client.getMouseCanvasPosition(): Point
+client.getMouseCurrentButton(): Number
+client.getMouseIdleTicks(): Number
+client.getMouseLastPressedMillis(): Number
+client.getMouseVolume(): Number
+client.getNpcDefinition(Number arg0): NPCComposition
+client.getNpcs(): List
+client.getObjectCompositionCache(): NodeCache
+client.getObjectDefinition(Number arg0): ObjectComposition
+client.getOculusOrbFocalPointX(): Number
+client.getOculusOrbFocalPointY(): Number
+client.getOculusOrbState(): Number
+client.getOverallExperience0(): Number
+client.getPlane(): Number
+client.getPlayerMenuTypes(): Array
+client.getPlayerOptions(): Array
+client.getPlayerOptionsPriorities(): Array
+client.getPlayers(): List
+client.getPreferences(): Preferences
+client.getProjectiles(): Deque
+client.getRasterizer(): Rasterizer
+client.getRasterizer3D_clipMidX20(): Number
+client.getRasterizer3D_clipMidY20(): Number
+client.getRasterizer3D_clipNegativeHdX0(): Number
+client.getRasterizer3D_clipNegativeHdY0(): Number
+client.getRealDimensions0(): Dimension
+client.getRealSkillLevel(Skill arg0): Number
+client.getRealSkillLevels(): Array
+client.getRenderOverview0(): RenderOverview
+client.getRevision0(): Number
+client.getScale(): Number
+client.getScene(): Scene
+client.getScriptActiveWidget(): Widget
+client.getScriptOkWidget(): Widget
+client.getSelectedSceneTile(): Tile
+client.getSelectedWidget(): Widget
+client.getServerVarbitValue(Number arg0): Number
+client.getServerVarpValue(Number arg0): Number
+client.getServerVarps(): Array
+client.getSkillExperience(Skill arg0): Number
+client.getSkillExperiences(): Array
+client.getSkyboxColor(): Number
+client.getSpriteOverrides(): Map
+client.getSpritesIndex(DataBase arg0, Number arg1, Number arg2): Array
+client.getStretchedDimensions0(): Dimension
+client.getStringStack(): Array
+client.getStringStackSize(): Number
+client.getStructComposition(Number arg0): StructComposition
+client.getStructCompositionCache(): NodeCache
+client.getTextureProvider(): TextureProvider
+client.getTickCount(): Number
+client.getTileHeight(): Array
+client.getTileSettings(): Array
+client.getTopLevelInterface(): Number
+client.getTopLevelWorldView(): WorldView
+client.getTotalLevel(): Number
+client.getUsername(): String
+client.getVar(Number arg0): Number
+client.getVarbit(Number arg0): VarbitComposition
+client.getVarbitValue(Array arg0, Number arg1): Number
+client.getVarbitValue(Number arg0): Number
+client.getVarClientValue(Number arg0): Number
+client.getVarcMap(): Map
+client.getVarcStrValue(Number arg0): String
+client.getVarpValue(Number arg0): Number
+client.getVarps(): Array
+client.getViewportHeight(): Number
+client.getViewportWidth(): Number
+client.getViewportXOffset(): Number
+client.getViewportYOffset(): Number
+client.getWeight(): Number
+client.getWidget(Number arg0): Widget
+client.getWidget(Number arg0, Number arg1): Widget
+client.getWidgetFlags(): HashTable
+client.getWidgetPositionsX(): Array
+client.getWidgetPositionsY(): Array
+client.getWidgetRoots(): Array
+client.getWidgetSpriteCache(): NodeCache
+client.getWidgetSpriteOverrides(): Map
+client.getWorldId(): Number
+client.getWorldList(): Array
+client.getWorldMap(): WorldMap
+client.getWorldType(): EnumSet
+client.getWorldView(Number arg0): WorldView
+client.getWtKeys(): Array
+client.hasHintArrow(): Boolean
+client.hopToWorld(World arg0)
+client.invalidateStretching(Boolean arg0)
+client.isCameraShakeDisabled(): Boolean
+client.isClientThread(): Boolean
+client.isDraggingWidget(): Boolean
+client.isFriended(String arg0, Boolean arg1): Boolean
+client.isGpu(): Boolean
+client.isInstancedRegion(): Boolean
+client.isKeyPressed(Number arg0): Boolean
+client.isMenuOpen(): Boolean
+client.isMenuScrollable(): Boolean
+client.isMinimapZoom(): Boolean
+client.isOnLoginScreen(): Boolean
+client.isPrayerActive(Prayer arg0): Boolean
+client.isResized(): Boolean
+client.isStretchedEnabled(): Boolean
+client.isStretchedFast(): Boolean
+client.isWidgetSelected(): Boolean
+client.loadAnimation(Number arg0): Animation
+client.loadModel(Number arg0): Model
+client.loadModel(Number arg0, Array arg1): Model
+client.loadModelData(Number arg0): ModelData
+client.menuAction(Number arg0, Number arg1, MenuAction arg2, Number arg3, Number arg4, String arg5, String arg6)
+client.mergeModels(Array arg0): ModelData
+client.mergeModels(Array arg0, Number arg1): ModelData
+client.openInterface(Number arg0, Number arg1, Number arg2): WidgetNode
+client.openWorldHopper()
+client.playSoundEffect(Number arg0)
+client.playSoundEffect(Number arg0, Number arg1)
+client.playSoundEffect(Number arg0, Number arg1, Number arg2, Number arg3)
+client.playSoundEffect(Number arg0, Number arg1, Number arg2, Number arg3, Number arg4)
+client.qd(OtlTokenRequester arg0)
+client.qk(OtlTokenRequester arg0)
+client.ql(): Boolean
+client.qp(RefreshAccessTokenRequester arg0)
+client.qs(): Boolean
+client.queueChangedSkill(Skill arg0)
+client.queueChangedVarp(Number arg0)
+client.qw(RefreshAccessTokenRequester arg0)
+client.qz(RefreshAccessTokenRequester arg0)
+client.refreshChat()
+client.resetHealthBarCaches()
+client.resizeCanvas()
+client.runScript(Array arg0)
+client.setAllWidgetsAreOpTargetable(Boolean arg0)
+client.setAnimationInterpolationFilter(IntPredicate arg0)
+client.setCameraFocalPointX(Number arg0)
+client.setCameraFocalPointY(Number arg0)
+client.setCameraFocalPointZ(Number arg0)
+client.setCameraMode(Number arg0)
+client.setCameraMouseButtonMask(Number arg0)
+client.setCameraPitchRelaxerEnabled(Boolean arg0)
+client.setCameraPitchTarget(Number arg0)
+client.setCameraShakeEnabled(Boolean arg0)
+client.setCameraSpeed(Number arg0)
+client.setCameraYawTarget(Number arg0)
+client.setClient(Number arg0)
+client.setCompass(SpritePixels arg0)
+client.setDraggedOnWidget(Widget arg0)
+client.setDraw2DMask(Number arg0)
+client.setDrawCallbacks(DrawCallbacks arg0)
+client.setExpandedMapLoading(Number arg0)
+client.setFreeCameraSpeed(Number arg0)
+client.setGESearchResultCount(Number arg0)
+client.setGESearchResultIds(Array arg0)
+client.setGESearchResultIndex(Number arg0)
+client.setGameState(GameState arg0)
+client.setGpuFlags(Number arg0)
+client.setHintArrowNPC(arg0)
+client.setIdleTimeout(Number arg0)
+client.setIntStackSize(Number arg0)
+client.setInventoryDragDelay(Number arg0)
+client.setInvertPitch(Boolean arg0)
+client.setInvertYaw(Boolean arg0)
+client.setLoginScreen(SpritePixels arg0)
+client.setMenuEntries(Array arg0)
+client.setMenuScroll(Number arg0)
+client.setMinimapTileDrawer(TileFunction arg0)
+client.setMinimapZoom(Number arg0)
+client.setModIcons(Array arg0)
+client.setMusicVolume(Number arg0)
+client.setOculusOrbNormalSpeed(Number arg0)
+client.setOculusOrbState(Number arg0)
+client.setOtlTokenRequester(OtlTokenRequester arg0)
+client.setOtp(String arg0)
+client.setPassword(String arg0)
+client.setRefreshTokenRequester(RefreshAccessTokenRequester arg0)
+client.setScalingFactor(Number arg0)
+client.setShouldRenderLoginScreenFire(Boolean arg0)
+client.setSkyboxColor(Number arg0)
+client.setStringStackSize(Number arg0)
+client.setStretchedEnabled(Boolean arg0)
+client.setStretchedFast(Boolean arg0)
+client.setStretchedIntegerScaling(Boolean arg0)
+client.setStretchedKeepAspectRatio(Boolean arg0)
+client.setTickCount(Number arg0)
+client.setUnlockedFps(Boolean arg0)
+client.setUnlockedFpsTarget(Number arg0)
+client.setUsername(String arg0)
+client.setVarbit(Number arg0, Number arg1)
+client.setVarbitValue(Array arg0, Number arg1, Number arg2)
+client.setVarClientInt(Number arg0, Number arg1)
+client.setVarcStrValue(Number arg0, String arg1)
+client.setWidgetSelected(Boolean arg0)
+client.stopNow()
+
+
+// Player Interaction Examples
+client.getLocalPlayer(): Player
+// Example:
+let player = client.getLocalPlayer();
+let location = player.getWorldLocation();
+let animation = player.getAnimation();
+
+client.getPlayers(): List<Player>
+// Example:
+let players = client.getPlayers();
+for (let i = 0; i < players.length; i++) {
+    let player = players[i];
+    if (player.getName() === targetName) {
+        // Found specific player
+    }
+}
+
+// Prayer/Combat Examples
+client.isPrayerActive(Prayer prayer): Boolean
+// Example:
+if (!client.isPrayerActive(Prayer.PROTECT_FROM_MISSILES)) {
+    // Enable prayer
+}
+
+client.getBoostedSkillLevel(Skill skill): Number
+// Example:
+let currentHP = client.getBoostedSkillLevel(net.runelite.api.Skill.HITPOINTS);
+let currentPrayer = client.getBoostedSkillLevel(net.runelite.api.Skill.PRAYER);
+
+// Equipment/Inventory Examples
+client.getItemContainer(Number id): ItemContainer
+// Example:
+let equipment = client.getItemContainer(94); // 94 = equipment container
+if (equipment && equipment.contains(weaponId)) {
+    // Specific item is equipped
+}
+
+// Menu Action Examples
+client.menuAction(Number p0, Number p1, MenuAction action, Number id, Number itemId, String option, String target)
+// Example:
+client.menuAction(0, 0, net.runelite.api.MenuAction.PLAYER_FIRST_OPTION, targetId, -1, "Challenge", playerName);
+
+// NPC Interaction Examples
+client.getNpcs(): List<NPC>
+// Example:
+let npcs = client.getNpcs();
+for (let npc of npcs) {
+    if (npc.getId() === targetNpcId && !npc.isDead()) {
+        // Found target NPC
+    }
+}
+
+// Projectile Detection Examples
+client.getProjectiles(): Deque
+// Example from flicker.js:
+let projectile = client.getProjectiles().getProjectilesWithIds([PROJECTILE_MAGIC])[0];
+if (projectile) {
+    // Handle magic projectile
+}
+
+// Widget Interaction Examples
+client.getWidget(Number id1, Number id2): Widget
+// Example from soul wars script:
+client.menuAction(-1, 14286875, net.runelite.api.MenuAction.WIDGET_TARGET, 0, -1, 'Cast', 'Telekinetic Grab');
+
+// Animation Examples
+client.getAnimation(): Number
+// Example from flicker.js:
+if (npc.getAnimation() === ANIM_SWAP_MAGE) {
+    // Handle mage animation swap
+}
+
+// Game State Examples
+client.getVarpValue(Number id): Number
+// Example from soul wars script:
+let zealCount = client.getVarpValue(2871);
+
+// Player State Examples
+client.getLocalPlayer().isInteracting(): Boolean
+// Example from soul wars script:
+if (!client.getLocalPlayer().isInteracting()) {
+    // Initiate interaction
+}
+
+// Health/Prayer Management Examples
+client.getBoostedSkillLevel(Skill skill): Number
+// Example from both scripts:
+let currentHP = client.getBoostedSkillLevel(net.runelite.api.Skill.HITPOINTS);
+if (currentHP <= minHealth) {
+    // Heal player
+}

@@ -1,0 +1,306 @@
+// Bank Methods
+bot.bank.close()
+bot.bank.depositAll()
+bot.bank.depositAllWithId(Number id)
+bot.bank.depositAllWithName(String name)
+bot.bank.depositWithId(Number id)
+bot.bank.depositWithName(String name)
+bot.bank.getNotedMode(): Boolean
+bot.bank.getQuantityOfAllIdsArray(ids): Number
+bot.bank.getQuantityOfAllNames(Array names): Number
+bot.bank.getQuantityOfId(Number id): Number
+bot.bank.getQuantityOfName(String name): Number
+bot.bank.isBanking(): Boolean
+bot.bank.isOpen(): Boolean
+bot.bank.open()
+bot.bank.setNotedMode(Boolean status)
+bot.bank.withdrawAllWithId(Number id)
+bot.bank.withdrawAllWithName(String name)
+bot.bank.withdrawQuantityWithId(Number id, Number quantity)
+bot.bank.withdrawWithId(Number id)
+bot.bank.withdrawWithName(String name)
+
+// BM Cache Methods
+bot.bmCache.getBoolean(String key, Boolean defaultValue): Boolean 
+bot.bmCache.getInt(String key, Number defaultValue): Number
+bot.bmCache.getString(String key, String defaultValue): String
+bot.bmCache.saveBoolean(String key, Boolean object)
+bot.bmCache.saveInt(String key, Number object)
+bot.bmCache.saveString(String key, String object)
+
+// Break Handler Methods
+bot.breakHandler.setBreakHandlerStatus(Boolean status)
+
+// Core Bot Methods
+bot.clearGameChat()
+bot.localPlayerIdle(): Boolean
+bot.localPlayerMoving(): Boolean
+bot.menuAction(Number p0, Number p1, MenuAction action, Number identifier, Number itemId, String option, String target)
+bot.menuAction(Number p0, Number p1, MenuAction action, Number identifier, Number itemId, String option, String target, Rectangle bounds)
+bot.printGameMessage(String message)
+bot.runClientScript(Array nts)
+bot.terminate()
+
+// Counter Methods
+bot.counters.getCounter(String name): Number
+bot.counters.setCounter(String name, Number value)
+
+// Equipment Methods
+bot.equipment.containsFillIds(Array ids): Boolean
+bot.equipment.containsFillNames(Array names): Boolean
+bot.equipment.containsId(Number id): Boolean
+bot.equipment.containsName(String name): Boolean
+bot.equipment.containsPngIds(Array ids): Boolean
+bot.equipment.containsPngNames(Array names): Boolean
+bot.equipment.getEquipmentO(): Array
+
+// Event Methods
+bot.events.post(Object event)
+bot.events.register(Class clazz, Function subFn, Number priority): Events$Subscriber
+bot.events.unregister(Function object)
+bot.events.unregisterAll()
+
+// Grand Exchange Methods
+bot.grandExchange.addBuyToQueue(Number itemId, Number quantity, Boolean walkToGrandOpenGE): ExchangeRequest
+bot.grandExchange.getExchangeQueueSize(): Number
+bot.grandExchange.getFreeSlot(): Number
+bot.grandExchange.isExchanging(): Boolean
+bot.grandExchange.isOpen(): Boolean
+
+// Graphics Objects Methods
+bot.graphicsObjects.getWithIds(Array ids): Array
+
+// Inventory Methods
+bot.inventory.containsFillIds(Array ids): Boolean
+bot.inventory.containsFillNames(Array names): Boolean
+bot.inventory.containsId(Number id): Boolean
+bot.inventory.containsName(String name): Boolean
+bot.inventory.containsPngIds(Array ids): Boolean
+bot.inventory.containsPngNames(Array names): Boolean
+bot.inventory.getEmptySlot(): Number
+bot.inventory.getQuantityOfFillIds(Array ids): Number
+bot.inventory.getQuantityOfFillNames(Array names): Number
+bot.inventory.getQuantityOfId(Number id): Number
+bot.inventory.getQuantityOfName(String name): Number
+bot.inventory.interactWithIds(Array itemIds, Array options)
+bot.inventory.interactWithNames(Array item_names, Array options)
+bot.inventory.isFull(): Boolean
+bot.inventory.itemOnItemWithIds(Number itemId1, Number itemId2)
+bot.inventory.itemOnNpcWithIds(Number itemId, NPC npc)
+bot.inventory.itemOnObjectWithIds(Number itemId, TileObject tileObject)
+bot.inventory.itemOnPlayerWithIds(Number itemId, Player player)
+bot.inventory.itemOnPlayerWithNames(Array item_names, Array player_names)
+
+// Magic Methods
+bot.magic.cast(String spellName)
+bot.magic.cast(String spellName, Number actionIndex)
+bot.magic.castOnNpc(String spellName, NPC npc)
+bot.magic.castOnPlayer(String spellName, Player player)
+bot.magic.castOnTileItem(String spellName, TileItem tileItem)
+bot.magic.castOnTileObject(String spellName, TileObject tileObject)
+
+// NPC Methods
+bot.npcs.getAnimationID(NPC npc): Number
+bot.npcs.getAttackSpeed(Number npcId): Number
+bot.npcs.getClosest(Array npcs): NPC
+bot.npcs.getClosestWithin(Array npcs, Number maxDistance): NPC
+bot.npcs.getHeadIcon(NPC npc): HeadIcon
+bot.npcs.getWithIds(Array ids): Array
+bot.npcs.getWithNames(Array names): Array
+bot.npcs.interact(String npcName, String action)
+bot.npcs.interactSupplied(NPC target, String action)
+bot.npcs.isNear(Array names, Number distance): Boolean
+
+// Object Methods
+bot.objects.getClosest(Array tileObjects): TileObject
+bot.objects.getClosestWithin(Array tileObjects, Number maxDistance): TileObject
+bot.objects.getTileObjectComposition(Number objectId): ObjectComposition
+bot.objects.getTileObjectsWithIds(Array ids): Array
+bot.objects.getTileObjectsWithNames(Array names): Array
+bot.objects.getTileObjectsWithOptions(Array options): Array
+bot.objects.interactObject(String objectName, String action)
+bot.objects.interactObjects(Array objectName, Array action)
+bot.objects.interactSuppliedObject(TileObject target, String action)
+bot.objects.isNear(Array names, Number distance): Boolean
+
+// Player Methods
+bot.players.attackPlayer(Array names)
+bot.players.followPlayer(Array names)
+bot.players.isNearPlayer(Number radius, Array names): Boolean
+bot.players.tradePlayer(Array names)
+
+// Prayer Methods
+bot.prayer.togglePrayer(Prayer prayer, Boolean bypassHouseClicks)
+
+// Projectiles Methods
+bot.projectiles.getProjectilesWithIds(Array ids): Array
+
+// Quest Helper Methods
+bot.plugins.questHelper.getCurrentQuestName(): String
+bot.plugins.questHelper.getNextItem(): Array
+bot.plugins.questHelper.getNextItemOnItem(): ItemOnItem
+bot.plugins.questHelper.getNextNpc(): NPC
+bot.plugins.questHelper.getNextTileObject(): TileObject
+bot.plugins.questHelper.getNextWidget(): Widget
+bot.plugins.questHelper.getNextWorldPoint(): WorldPoint
+bot.plugins.questHelper.getOverlayfs(): String
+bot.plugins.questHelper.isQuestStarted(): Boolean
+bot.plugins.questHelper.performNextStep(): Boolean
+
+// Tile Items Methods
+bot.tileItems.getItemsOfValue(Number value): Array
+bot.tileItems.getItemsWithIds(Array ids): Array
+bot.tileItems.getItemsWithNames(Array names): Array
+bot.tileItems.lootItem(TileItemInfo tileItemInfo)
+bot.tileItems.lootItemsOfValue(Number value, Number maxDistance): Boolean
+bot.tileItems.lootItemsWithIds(Array lootIds, Number maxDistance): Boolean
+bot.tileItems.lootItemsWithNames(Array lootNames, Number maxDistance): Boolean
+
+// Variables Methods
+bot.variables.getBooleanVariable(String variableName): Boolean
+bot.variables.getIntArrayVariable(String variableName): Array
+bot.variables.getIntVariable(String variableName): Number
+bot.variables.getStringArrayVariable(String variableName): Array
+bot.variables.getStringVariable(String variableName): String
+bot.variables.setVariable(String variableName, Object value)
+
+// Walking Methods
+bot.walking.getWebWalkCalculatedPath(): Array
+bot.walking.isRunning(): Boolean
+bot.walking.isWebWalking(): Boolean
+bot.walking.toggleRun()
+bot.walking.walkToTrueWorldPoint(Number x, Number y)
+bot.walking.walkToWorldPoint(Number x, Number y)
+bot.walking.webWalkCancel()
+bot.walking.webWalkStart(WorldPoint worldPoint)
+
+// Widget Methods
+bot.widgets.interactSpecifiedWidget(Number packed_widget_id, Number identifier, Number opcode, Number param0)
+bot.widgets.interactSpecifiedWidget(Number packed_widget_id, Number identifier, Number opcode, Number param0, Number param1)
+bot.widgets.interactWidgetText(String text)
+
+// Prayer Methods Examples
+bot.prayer.togglePrayer(Prayer prayer, Boolean bypassHouseClicks)
+// Example:
+bot.prayer.togglePrayer(Prayer.PROTECT_FROM_MISSILES, true);
+bot.prayer.togglePrayer(Prayer.PROTECT_FROM_MAGIC, true);
+
+// Equipment Methods Examples
+bot.equipment.containsId(Number id): Boolean
+// Example:
+if (!bot.equipment.containsId(WEAPON_ID)) {
+    bot.inventory.interactWithIds([WEAPON_ID], ['Wield']);
+}
+
+// NPC Methods Examples
+bot.npcs.interactWithIds(Array ids, Array actions)
+// Example:
+bot.npcs.interactWithIds([HUNLEFF_MAGIC, HUNLEFF_RANGE], ['Attack']);
+
+bot.npcs.getWithIds(Array ids): Array
+// Example:
+let targetNpc = bot.npcs.getWithIds([NPC_ID])[0];
+if (targetNpc) {
+    bot.npcs.interactSupplied(targetNpc, 'Attack');
+}
+
+// Inventory Methods Examples
+bot.inventory.interactWithIds(Array itemIds, Array options)
+// Example:
+bot.inventory.interactWithIds([POTION_ID], ['Drink']);
+bot.inventory.interactWithIds([FOOD_ID], ['Eat']);
+
+// Counter Methods Examples
+bot.counters.setCounter(String name, Number value)
+// Example:
+bot.counters.setCounter('Damage Dealt', currentDamage);
+
+bot.counters.getCounter(String name): Number
+// Example:
+let currentCount = bot.counters.getCounter('Damage Dealt');
+
+// Debug Message Examples
+bot.printGameMessage(String message)
+// Example:
+bot.printGameMessage('Current Equipment: ' + currentWeapon);
+bot.printGameMessage('Combat State: ' + combatState);
+
+// Variable Methods Examples
+bot.variables.getBooleanVariable(String name): Boolean
+// Example:
+let isMainPlayer = bot.variables.getBooleanVariable('.mainPlayer');
+
+bot.variables.setVariable(String name, Object value)
+// Example:
+bot.variables.setVariable('.fragmentsNeeded', fragmentAmount);
+
+// Walking Methods Examples
+bot.walking.walkToTrueWorldPoint(Number x, Number y)
+// Example:
+bot.walking.walkToTrueWorldPoint(targetLocation.getX(), targetLocation.getY());
+
+bot.walking.isWebWalking(): Boolean
+// Example:
+if (!bot.walking.isWebWalking()) {
+    bot.walking.webWalkStart(newLocation);
+}
+
+// Projectile Methods Examples
+bot.projectiles.getProjectilesWithIds(Array ids): Array
+// Example from flicker.js:
+if (bot.projectiles.getProjectilesWithIds([PROJECTILE_INVERSION])[0]) {
+    // Handle inversion projectile
+}
+
+// Graphics Object Methods Examples
+bot.graphicsObjects.getWithIds(Array ids): Array
+// Example from soul wars script:
+let graphicsObj = bot.graphicsObjects.getWithIds([GRAPHICS_ID]);
+
+// Event Handling Examples
+bot.events.register(Class clazz, Function subFn, Number priority)
+// Example from both scripts:
+bot.events.register(GameTick.class, () => {
+    // Handle game tick
+});
+
+// Cache Management Examples
+bot.bmCache.saveBoolean(String key, Boolean value)
+bot.bmCache.getBoolean(String key, Boolean defaultValue)
+// Example from soul wars script:
+bot.bmCache.saveBoolean('.method doloOne', true);
+let methodOne = bot.bmCache.getBoolean('.method doloOne', false);
+
+// Player Death Handling Examples
+bot.onActorDeath(actor)
+// Example from soul wars script:
+if (actor.getName() == opposingPlayerIGN) {
+    playerDeath = true;
+}
+
+// Chat Message Handling Examples
+bot.onChatMessage(type, name, message)
+// Example from soul wars script:
+if (message.includes('has taken control of the Soul Obelisk')) {
+    obeliskCaptured = true;
+}
+
+// Hitsplat Handling Examples
+bot.onHitsplatApplied(actor, hitsplat)
+// Example from soul wars script:
+if (actor.getName().includes('Avatar')) {
+    damageDealtOnAvatar += hitsplat.getAmount();
+}
+
+// Item Container Examples
+bot.inventory.getQuantityOfAllIds(Array ids): Number
+// Example:
+let potionCount = bot.inventory.getQuantityOfAllIds(Juice);
+if (potionCount > 0) {
+    // Use potion
+}
+
+// Widget Interaction Examples
+bot.widgets.interactSpecifiedWidget(Number packed_widget_id, Number identifier, Number opcode, Number param0)
+// Example from flicker.js:
+bot.widgets.interactSpecifiedWidget(10485795, 1, 57, -1); // Special attack interaction

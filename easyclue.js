@@ -1,280 +1,277 @@
-// Define constants
-const scrollBoxId = 2686;
-const clueScrollId = 24362;
-const clueCompassId = 30363;
-const spadeId = 952;
+/*
+    Easy Clue Scroll Solver
+    - Opens scroll boxes and reads clues
+    - Navigates to hint arrow locations
+    - Attempts to interact with NPCs, objects, or dig spots
+    - Includes path finding and stuck detection
+    Version 4.0
+*/
 
-function hasTimedOut(lastActionTime) {
-	const currentTime = new Date().getTime();
-	return currentTime - lastActionTime > 10000; // 10 seconds
-}
+/* State Management */
+var mainState = 0;
+var subState = 0;
+var timeout = 0;
 
-// Define game tick function
+/* Script Control Variables */
+var isScriptStarted = false;
+var hasClueBox = false;
+var currentClueLocation = null;
+
+/* Position Tracking for Stuck Detection */
+var lastPosition = null;
+var stuckTicks = 0;
+const STUCK_THRESHOLD = 5; // About 3 seconds worth of game ticks
+
+/* Main Loop */
 function onGameTick() {
-	bot.printGameMessage('Executed JS onGameTick Method');
+    if (timeout > 0) {
+        return timeout--;
+    }
 
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering onGameTick function');
-
-	const currentState = getState();
-	switch (currentState.name) {
-		case 'CHECK_INVENTORY':
-			handleInventoryCheck(currentState);
-			break;
-		case 'OPEN_BOX':
-			handleOpenBox(currentState);
-			break;
-		case 'READ_CLUE':
-			handleReadClue(currentState);
-			break;
-		case 'NAVIGATE':
-			handleNavigation(currentState);
-			break;
-		case 'PERFORM_ACTION':
-			handleAction(currentState);
-			break;
-	}
-
-	// Print a debug message to confirm we've reached the end of the function
-	bot.printGameMessage('Finished onGameTick function');
+    switch (mainState) {
+        case 0:
+            setupClueScroll();
+            break;
+        case 1:
+            solveClueScroll();
+            break;
+        default:
+            break;
+    }
 }
 
-// Define game states
-
-function getState() {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering getState function');
-
-	return {
-		name: 'CHECK_INVENTORY',
-		lastActionTime: new Date().getTime(),
-		clueType: null,
-	};
+/* Core Interaction Functions - These handle all interactions with game elements */
+function handleNPCInteraction() {
+    var npc = client.getHintArrowNpc();
+    if (npc !== null) {
+        api.interactNpc(npc.getName(), "Talk-to");
+        api.PrintDebugMessage("Attempting to talk to " + npc.getName());
+        return true;
+    }
+    return false;
 }
 
-function updateState(newState) {
-	const currentState = getState();
-	Object.assign(currentState, newState);
-	return currentState;
+function handleObjectInteraction() {
+    // Objects that need to be opened first
+    var containerObjects = ["Drawers", "Closed Chest", "Wardrobe", "Cupboard"];
+    // Objects that can be searched directly
+    var searchObjects = ["Open Chest", "Crate", "Bookcase", "Coffin", "Bush"];
 
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering updateState function');
+    // Try opening then searching containers
+    for (var i = 0; i < containerObjects.length; i++) {
+        api.interactObject(containerObjects[i], "Open");
+        api.interactObject(containerObjects[i], "Search");
+    }
+    
+    // Try direct search objects
+    for (var i = 0; i < searchObjects.length; i++) {
+        api.interactObject(searchObjects[i], "Search");
+    }
 }
 
-// Define states
-let isReadingClue = false;
-
-// Define inventory check function
-function handleInventoryCheck(state) {
-	if (!hasTimedOut(state.lastActionTime)) return;
-
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering handleInventoryCheck function');
-
-	const hasClueScroll =
-		bot.inventory.interactWithIds([clueScrollId], ['Read']).length > 0;
-	if (hasClueScroll) {
-		updateState({ name: 'READ_CLUE', clueType: getStateClueType() });
-		isReadingClue = true;
-		return;
-	}
-	const hasClueBox =
-		bot.inventory.interactWithIds([scrollBoxId], ['Open']).length > 0;
-	if (hasClueBox) {
-		updateState({ name: 'OPEN_BOX' });
-		return;
-	}
+function handleDigging() {
+    if (!hasItem("Spade")) {
+        api.PrintDebugMessage("No spade in inventory!");
+        return false;
+    }
+    api.interactInventoryWithNames(["Spade"], ["Dig"]);
+    return true;
 }
 
-// Define open box function
-function handleOpenBox(state) {
-	if (!hasTimedOut(state.lastActionTime)) return;
-
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering handleOpenBox function');
-
-	bot.inventory.interactWithIds([scrollBoxId], ['Open']);
-	updateState({
-		name: 'CHECK_INVENTORY',
-		lastActionTime: new Date().getTime(),
-	});
+/* Setup Phase Functions */
+function setupClueScroll() {
+    switch (subState) {
+        case 0:
+            checkInventoryState();
+            break;
+        case 1:
+            openClueBox();
+            break;
+        case 2:
+            readClueScroll();
+            break;
+        case 3:
+            // Move straight to solving after reading
+            mainState = 1;
+            subState = 0;
+            return timeout = 1;
+        default:
+            resetStates();
+            break;
+    }
 }
 
-// Define read clue function
-function handleReadClue(state) {
-	if (!hasTimedOut(state.lastActionTime)) return;
+/* Inventory Management Functions */
+function checkInventoryState() {
+    hasClueBox = hasItem("Scroll box (easy)");
+    
+    if (!hasClueBox && !hasClueScroll()) {
+        api.PrintDebugMessage("No Scroll box or Clue scroll found in inventory!");
+        return timeout = 10;
+    }
 
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering handleReadClue function');
-
-	bot.inventory.interactWithIds([clueScrollId], ['Read']);
-	updateState({
-		name: 'CHECK_INVENTORY',
-		lastActionTime: new Date().getTime(),
-		clueType: getStateClueType(),
-	});
+    subState++;
+    return timeout = 1;
 }
 
-// Define function to get clue type
-function getStateClueType() {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering getStateClueType function');
-
-	const clues = bot.inventory.getClues();
-	for (var i = 0; i < clues.length; i++) {
-		if (clues[i].type == 'equip') return 'EQUIP';
-		else if (clues[i].type == 'wear') return 'WEAR';
-		else return 'NONE';
-	}
+function hasItem(itemName) {
+    var inv = client.getItemContainer(93);
+    if (inv != null) {
+        var items = inv.getItems();
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (item != null) {
+                var itemComp = client.getItemDefinition(item.getId());
+                if (itemComp && itemComp.getName().includes(itemName)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
-// Define navigation function
-function handleNavigation(state) {
-	if (!hasTimedOut(state.lastActionTime)) return;
-
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering handleNavigation function');
-
-	const clueCompass = bot.inventory.interactWithIds(
-		[clueCompassId],
-		['Click on "Current-step"'],
-	);
-	updateState({
-		name: 'NAVIGATE',
-		lastActionTime: new Date().getTime(),
-		clueType: state.clueType,
-	});
+function hasClueScroll() {
+    return hasItem("Clue scroll (easy)");
 }
 
-// Define function to navigate
-function performNavigation() {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering performNavigation function');
+/* Item Interaction Functions */
+function openClueBox() {
+    if (!hasItem("Scroll box (easy)")) {
+        subState++;
+        return timeout = 1;
+    }
 
-	const clueCompass = bot.inventory.interactWithIds(
-		[clueCompassId],
-		['Click on "Current-step"'],
-	);
-	if (clueCompass > 0) {
-		talkToHintArrowNPC();
-	} else {
-		bot.printGameMessage('No NPC with Hint Arrow found');
-	}
+    if (isPlayerBusy()) {
+        return timeout = 1;
+    }
+
+    api.interactInventoryWithNames(["Scroll box (easy)"], ["Open"]);
+    subState++;
+    return timeout = 2;
 }
 
-// Define function to get NPC with hint arrow
-function getHintArrowNpc() {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering getHintArrowNpc function');
+function readClueScroll() {
+    if (!hasClueScroll()) {
+        return timeout = 1;
+    }
 
-	const npcList = bot.npcs.getNpcsInSight();
-	for (var i = 0; i < npcList.length; i++) {
-		if (npcList[i].getIsHintArrowNpc()) return npcList[i];
-	}
-	return null;
+    if (isPlayerBusy()) {
+        return timeout = 1;
+    }
+
+    api.interactInventoryWithNames(["Clue scroll (easy)"], ["Read"]);
+    subState++;
+    return timeout = 2;
 }
 
-// Define function to talk to NPC with hint arrow
-function talkToHintArrowNPC() {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering talkToHintArrowNPC function');
-
-	var npc = getHintArrowNpc();
-	if (npc !== null) {
-		bot.npcs.interactSupplied(npc, 'Talk-to');
-	} else {
-		bot.printGameMessage('No NPC with Hint Arrow found');
-	}
+/* Clue Solving Functions */
+function solveClueScroll() {
+    switch (subState) {
+        case 0:
+            activateCompass();
+            break;
+        case 1:
+            walkToClueLocation();
+            break;
+        case 2:
+            performClueAction();
+            break;
+        default:
+            resetStates();
+            break;
+    }
 }
 
-// Define function to check if object has action
-function hasObjectAction(objectId, action) {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering hasObjectAction function');
+function activateCompass() {
+    if (isPlayerBusy()) {
+        return timeout = 1;
+    }
 
-	var objectComposition = bot.objects.getTileObjectComposition(objectId);
-	var actions = objectComposition.getActions();
-	for (var i = 0; i < actions.length; i++) {
-		if (actions[i] && actions[i] == action) return true;
-	}
-	return false;
+    api.interactInventoryWithNames(["Clue compass"], ["Current-step"]);
+    subState++;
+    return timeout = 2;
 }
 
-// Define function to perform action on object
-function performObjectAction(objectId, action) {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering performObjectAction function');
+function walkToClueLocation() {
+    if (isPlayerBusy()) {
+        return timeout = 1;
+    }
 
-	var objectComposition = bot.objects.getTileObjectComposition(objectId);
-	bot.objects.interactSupplied(objectComposition, action);
+    var hintArrow = client.getHintArrowPoint();
+    if (!hintArrow) {
+        return timeout = 1;
+    }
+
+    var playerLocation = client.getLocalPlayer().getWorldLocation();
+    var distance = playerLocation.distanceTo(hintArrow);
+    
+    // Handle stuck detection
+    if (lastPosition !== null) {
+        if (lastPosition.getX() === playerLocation.getX() && 
+            lastPosition.getY() === playerLocation.getY()) {
+            stuckTicks++;
+            
+            if (stuckTicks >= STUCK_THRESHOLD) {
+                api.PrintDebugMessage("Detected stuck state - attempting interactions");
+                performClueAction();
+                stuckTicks = 0;
+                return timeout = 2;
+            }
+        } else {
+            stuckTicks = 0;
+        }
+    }
+    
+    lastPosition = playerLocation;
+
+    // If we're close enough, move to interaction phase
+    if (distance <= 2) {
+        stuckTicks = 0;
+        lastPosition = null;
+        subState++;
+        return timeout = 1;
+    }
+
+    // Keep walking toward the hint arrow
+    api.walkToWorldPoint(hintArrow.getX(), hintArrow.getY());
+    return timeout = 1;
 }
 
-// Define search for item in tile function
-function searchForItemInTile(itemId, tileId) {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering searchForItemInTile function');
+function performClueAction() {
+    if (isPlayerBusy()) {
+        return timeout = 1;
+    }
 
-	var tileComposition = bot.tiles.getTileComposition(tileId);
-	if (tileComposition && hasObjectAction(tileId, 'Search')) {
-		performObjectAction(tileId, 'Search');
-		return true;
-	}
-	return false;
+    // Try all possible interactions in sequence
+    handleNPCInteraction();
+    handleObjectInteraction();
+    handleDigging();
+
+    resetStates();
+    return timeout = 2;
 }
 
-// Define function to dig with spade
-function digWithSpade() {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering digWithSpade function');
-
-	var spade = bot.inventory.interactWithIds([spadeId], ['Use']);
-	if (spade > 0) {
-		bot.printGameMessage('Dug with Spade');
-	} else {
-		bot.printGameMessage('No Spade found');
-	}
+/* Helper Functions */
+function isPlayerBusy() {
+    return (api.isWebWalking() || api.localPlayerMoving() || !api.localPlayerIdle());
 }
 
-// Define action function
-function handleAction(state) {
-	// Print a debug message to confirm we're entering the function
-	bot.printGameMessage('Entering handleAction function');
-
-	if (!hasTimedOut(state.lastActionTime)) return;
-	const hasSpade =
-		bot.inventory.interactWithIds([spadeId], ['Use']).length > 0;
-	if (state.clueType == 'EQUIP') {
-		updateState({
-			name: 'CHECK_INVENTORY',
-			lastActionTime: new Date().getTime(),
-		});
-	} else if (state.clueType == 'WEAR') {
-		bot.inventory.interactWithIds([clueScrollId], ['Drop']);
-		updateState({
-			name: 'CHECK_INVENTORY',
-			lastActionTime: new Date().getTime(),
-			clueType: null,
-		});
-	} else {
-		performNavigation();
-	}
+function resetStates() {
+    mainState = 0;
+    subState = 0;
+    timeout = 0;
+    currentClueLocation = null;
+    lastPosition = null;
+    stuckTicks = 0;
 }
 
-// Define chat message function
-function onChatMessage(type, name, message) {
-	// Print a debug message to confirm we're entering the function
-	if (
-		isReadingClue &&
-		['equip', 'wear', 'equipped'].some((keyword) =>
-			message.toLowerCase().includes(keyword),
-		)
-	) {
-		bot.printGameMessage('Equipment clue detected - dropping');
-		bot.inventory.interactWithIds([clueScrollId], ['Drop']);
-		updateState({
-			name: 'CHECK_INVENTORY',
-			lastActionTime: new Date().getTime(),
-			clueType: null,
-		});
-	}
+/* Script Startup */
+function startScript() {
+    api.PrintDebugMessage("Starting Easy Clue Solver Script v4.0");
+    api.PrintDebugMessage("Ensure you have:");
+    api.PrintDebugMessage("1. A spade in your inventory for dig clues");
+    api.PrintDebugMessage("2. Either a scroll box or clue scroll to start");
+    isScriptStarted = true;
+    resetStates();
 }

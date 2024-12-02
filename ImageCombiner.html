@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Combiner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding: 10px;
+            max-height: 600px;
+            border: 2px dashed #ccc;
+            margin: 20px 0;
+        }
+        .preview-image {
+            width: 100%;
+            object-fit: contain;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #imageInput {
+            display: none;
+        }
+        .image-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .filename {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Combiner</h1>
+    <p>Select multiple images to combine them vertically into a single PNG. Images will be sorted by numbers in their filenames (smallest to largest).</p>
+    
+    <div class="controls">
+        <input type="file" id="imageInput" multiple accept="image/*">
+        <button onclick="document.getElementById('imageInput').click()">Add Images</button>
+        <button onclick="combineImages()">Combine & Download</button>
+        <button onclick="clearImages()">Clear All</button>
+    </div>
+
+    <div id="previewContainer" class="preview-container">
+        <p id="placeholder">Images will appear here</p>
+    </div>
+
+    <script>
+        let imageList = [];  // Array to store {image, filename} objects
+        const previewContainer = document.getElementById('previewContainer');
+        const imageInput = document.getElementById('imageInput');
+        const placeholder = document.getElementById('placeholder');
+
+        function extractNumber(filename) {
+            const match = filename.match(/\d+/);
+            return match ? parseInt(match[0]) : Infinity;
+        }
+
+        function sortImages() {
+            imageList.sort((a, b) => {
+                const numA = extractNumber(a.filename);
+                const numB = extractNumber(b.filename);
+                return numA - numB;
+            });
+        }
+
+        imageInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        imageList.push({
+                            image: img,
+                            filename: file.name
+                        });
+                        sortImages();
+                        updatePreview();
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function updatePreview() {
+            if (imageList.length > 0) {
+                placeholder.style.display = 'none';
+            } else {
+                placeholder.style.display = 'block';
+            }
+
+            // Clear existing previews
+            while (previewContainer.firstChild && previewContainer.firstChild !== placeholder) {
+                previewContainer.removeChild(previewContainer.firstChild);
+            }
+
+            // Add new previews
+            imageList.forEach(item => {
+                const container = document.createElement('div');
+                container.className = 'image-info';
+                
+                const preview = item.image.cloneNode();
+                preview.classList.add('preview-image');
+                
+                const filename = document.createElement('div');
+                filename.className = 'filename';
+                filename.textContent = item.filename;
+                
+                container.appendChild(preview);
+                container.appendChild(filename);
+                previewContainer.appendChild(container);
+            });
+        }
+
+        function clearImages() {
+            imageList = [];
+            updatePreview();
+            imageInput.value = '';
+        }
+
+        function combineImages() {
+            if (imageList.length === 0) {
+                alert('Please add some images first!');
+                return;
+            }
+
+            // Calculate maximum width and total height
+            let maxWidth = 0;
+            let totalHeight = 0;
+            imageList.forEach(item => {
+                maxWidth = Math.max(maxWidth, item.image.naturalWidth);
+                totalHeight += item.image.naturalHeight;
+            });
+
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = maxWidth;
+            canvas.height = totalHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Draw images
+            let currentY = 0;
+            imageList.forEach(item => {
+                ctx.drawImage(item.image, 0, currentY, item.image.naturalWidth, item.image.naturalHeight);
+                currentY += item.image.naturalHeight;
+            });
+
+            // Download the result
+            const link = document.createElement('a');
+            link.download = 'combined-image.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
